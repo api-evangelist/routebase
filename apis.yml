@@ -1,0 +1,54 @@
+name: Routebase
+description: API lifecycle platform covering Design (visual OpenAPI editor), Mock (spec-driven mock servers), Test
+  (suites, assertions, OWASP security scanning), Document (published docs portals), and Agents (MCP server), built
+  around a single living OpenAPI spec.
+url: https://raw.githubusercontent.com/api-evangelist/routebase/refs/heads/main/apis.yml
+created: '2026-09-11'
+modified: '2026-09-11'
+specificationVersion: '0.21'
+tags:
+- API lifecycle management
+- API design
+- OpenAPI
+- API documentation
+- API testing
+- API mocking
+- API monitoring
+- API security
+- MCP
+- AI agents
+- developer tools
+- CI/CD
+- REST
+- OAuth 2.1
+- SCIM
+- Streamable HTTP
+apis:
+- name: Routebase API
+  humanURL: https://docs.routebase.dev
+  baseURL: https://api.routebase.dev
+  tags:
+  - API lifecycle management
+  - API design
+  - OpenAPI
+  - API documentation
+  properties:
+  - type: OpenAPI
+    url: https://docs.routebase.dev/api/routebase-public-api/openapi.json
+  - type: Documentation
+    url: https://docs.routebase.dev
+  - type: LLMsTxt
+    url: https://routebase.dev/llms.txt
+  - type: MCPServer
+    url: https://mcp.routebase.dev
+common:
+- type: Website
+  url: https://routebase.dev
+maintainers:
+- FN: Routebase
+  url: https://routebase.dev
+x-source:
+  via: apis.io/add 994a3b60, parked unverifiable_host
+  fetched: '2026-09-11'
+  note: 'Approved: the api host soft-200s but the verifiable surface is real -- docs host serves the OpenAPI and
+    discriminates (control 404), MCP returns a proper auth-gated 401 (not soft).'
