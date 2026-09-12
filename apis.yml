@@ -42,6 +42,12 @@ apis:
   - type: MCPServer
     url: https://mcp.routebase.dev
 common:
+- type: VulnerabilityDisclosure
+  url: security/routebase-vulnerability-disclosure.yml
+- type: DomainSecurity
+  url: security/routebase-domain-security.yml
+- type: Authentication
+  url: authentication/routebase-authentication.yml
 - type: Website
   url: https://routebase.dev
 maintainers:
