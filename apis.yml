@@ -3,8 +3,9 @@ description: API lifecycle platform covering Design (visual OpenAPI editor), Moc
   (suites, assertions, OWASP security scanning), Document (published docs portals), and Agents (MCP server), built
   around a single living OpenAPI spec.
 url: https://raw.githubusercontent.com/api-evangelist/routebase/refs/heads/main/apis.yml
+image: https://routebase.dev/icon.png
 created: '2026-09-11'
-modified: '2026-09-11'
+modified: '2026-09-13'
 specificationVersion: '0.21'
 tags:
 - API lifecycle management
@@ -25,6 +26,11 @@ tags:
 - Streamable HTTP
 apis:
 - name: Routebase API
+  description: The public, customer-committed part of the Routebase API — CLI-driven CI test runs, spec
+    versioning and promotion, OWASP security scanning with SARIF export, docs-as-code, and SCIM 2.0 user
+    provisioning. Authenticated with an X-API-Key (rb_live_) key scoped per permission and project; SCIM
+    uses a separate bearer token. Errors are RFC 9457 problem+json.
+  image: https://routebase.dev/icon.png
   humanURL: https://docs.routebase.dev
   baseURL: https://api.routebase.dev
   tags:
@@ -37,13 +43,73 @@ apis:
     url: https://docs.routebase.dev/api/routebase-public-api/openapi.json
   - type: Documentation
     url: https://docs.routebase.dev
+  - type: APIReference
+    url: https://docs.routebase.dev/api/routebase-public-api/
   - type: LLMsTxt
     url: https://routebase.dev/llms.txt
   - type: MCPServer
     url: https://mcp.routebase.dev
 common:
+- type: ToolCrosswalk
+  url: mcp/routebase-tool-crosswalk.yml
+- type: DeveloperPortal
+  url: https://docs.routebase.dev
+- type: GettingStarted
+  url: https://docs.routebase.dev/getting-started/
+- type: Support
+  url: https://routebase.dev/support/
+- type: Blog
+  url: https://routebase.dev/blog/
+- type: Pricing
+  url: https://routebase.dev/pricing/
+- type: SignUp
+  url: https://app.routebase.dev/
+- type: TermsOfService
+  url: https://routebase.dev/terms/
+- type: PrivacyPolicy
+  url: https://routebase.dev/privacy/
+- type: Packages
+  url: packages/routebase-packages.yml
+- type: SDKs
+  url: packages/routebase-packages.yml
+- type: CLI
+  url: cli/routebase-cli.yml
+- type: OAuthScopes
+  url: scopes/routebase-scopes.yml
+- type: Conventions
+  url: conventions/routebase-conventions.yml
+- type: ErrorCatalog
+  url: errors/routebase-problem-types.yml
+- type: Conformance
+  url: conformance/routebase-conformance.yml
+- type: RateLimits
+  url: rate-limits/routebase-rate-limits.yml
+- type: Lifecycle
+  url: lifecycle/routebase-lifecycle.yml
+- type: ChangeLog
+  url: changelog/routebase-changelog.yml
+- type: DataModel
+  url: data-model/routebase-data-model.yml
+- type: Sandbox
+  url: sandbox/routebase-sandbox.yml
+- type: AsyncAPI
+  url: asyncapi/routebase-webhooks-asyncapi.yml
+- type: Webhooks
+  url: asyncapi/routebase-webhooks-catalog.yml
+- type: AgentSkill
+  url: skills/_index.yml
+- type: Overlay
+  url: overlays/routebase-public-api-overlay.yaml
+- type: WellKnown
+  url: well-known/routebase-well-known.yml
+- type: SecurityTxt
+  url: well-known/routebase-security.txt
+- type: AgenticAccess
+  url: agentic-access/routebase-agentic-access.yml
 - type: VulnerabilityDisclosure
   url: security/routebase-vulnerability-disclosure.yml
+- type: Security
+  url: well-known/routebase-security.txt
 - type: DomainSecurity
   url: security/routebase-domain-security.yml
 - type: Authentication
@@ -52,7 +118,13 @@ common:
   url: https://routebase.dev
 maintainers:
 - FN: Routebase
+  email: hello@routebase.dev
   url: https://routebase.dev
+x-enrichment:
+  date: '2026-09-13'
+  status: enriched
+  artifacts_added: 15
+  pass: local-v3
 x-source:
   via: apis.io/add 994a3b60, parked unverifiable_host
   fetched: '2026-09-11'

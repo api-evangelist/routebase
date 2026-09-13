@@ -1,0 +1,60 @@
+generated: '2026-09-11'
+method: searched
+source: |-
+  https://mcp.routebase.dev/.well-known/oauth-protected-resource and
+  https://api.routebase.dev/.well-known/oauth-protected-resource (identical
+  scopes_supported list), corroborated by https://docs.routebase.dev/api-keys/
+  which documents the same scope strings as API-key permissions.
+docs: https://docs.routebase.dev/api-keys/
+model: |-
+  Scopes are the granular API-key/OAuth permissions, grouped by functional area and
+  formatted <area>:<action>. Keys default to full access or can be restricted to a
+  subset of scopes and projects. OIDC identity scopes (openid, profile, email, ...)
+  are served separately by the auth server metadata.
+authorization_server: https://auth.routebase.dev/
+resource_scopes:
+- scope: projects:read
+- scope: projects:write
+- scope: projects:delete
+- scope: projects:manage-members
+- scope: specs:read
+- scope: specs:write
+- scope: specs:publish
+- scope: specs:delete
+- scope: specs:branch
+- scope: specs:merge
+- scope: specs:review
+- scope: tests:read
+- scope: tests:write
+- scope: tests:execute
+- scope: security:read
+- scope: security:write
+- scope: security:execute
+- scope: mock-server:read
+- scope: mock-server:manage
+- scope: monitoring:read
+- scope: monitoring:write
+- scope: gateway:read
+- scope: gateway:write
+- scope: gateway:deploy
+- scope: catalog:read
+- scope: catalog:write
+- scope: docs:read
+- scope: docs:write
+- scope: docs:publish
+- scope: docs:manage-portal
+- scope: notifications:read
+- scope: notifications:manage
+- scope: ai:use
+- scope: ai:manage
+- scope: billing:read
+- scope: billing:manage
+- scope: org:manage-members
+- scope: org:manage-teams
+- scope: org:manage-settings
+- scope: org:manage-security
+- scope: org:manage-governance
+- scope: org:delete
+oidc_scopes:
+  source: https://auth.routebase.dev/.well-known/openid-configuration
+  scopes_supported: [openid, profile, offline_access, name, given_name, family_name, nickname, email, email_verified, picture, created_at, identities, phone, address]

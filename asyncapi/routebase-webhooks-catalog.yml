@@ -1,0 +1,35 @@
+generated: '2026-09-13'
+method: searched
+source: https://docs.routebase.dev/webhooks/
+spec_type: Webhooks
+transport: {method: POST, content_type: application/json, tls: HTTPS recommended (HTTP allowed)}
+signing:
+  header: X-Routebase-Signature
+  algorithm: HMAC-SHA256
+  format: 'sha256=<hex hmac of the raw body computed with your endpoint secret>'
+  verify: Recompute HMAC-SHA256 of the raw body with your secret and compare to the value after "sha256=".
+delivery_headers:
+- {name: X-Routebase-Signature, note: sha256= HMAC-SHA256 signature}
+- {name: X-Routebase-Event, note: the event type}
+- {name: X-Routebase-Delivery, note: unique delivery identifier}
+payload_shape:
+  fields: [eventType, timestamp, organizationId, projectId, actorUserName, data]
+  timestamp_format: ISO 8601
+  data: event-specific fields
+retry:
+  strategy: exponential-backoff
+  intervals_minutes: [1, 2, 4, 8]
+  trigger: non-2xx responses
+  max_retries: {options: [None, 1, 2, 3, 5, 10], default: 3}
+event_categories:
+- {category: API Design, events: ['spec.*', 'endpoint.*', 'schema.*', 'version.*']}
+- {category: Testing, events: ['test_run.*', 'test_run.failed', 'test_run.passed']}
+- {category: Projects, events: ['project.*']}
+- {category: Mock Server, events: ['mock_server.*']}
+- {category: Monitoring, events: ['monitor.*', 'monitor.schema_drift_detected', 'monitor.incident_opened', 'monitor.recovered']}
+- {category: Style Guide, events: ['style_guide.*']}
+- {category: Team, events: ['team.*']}
+note: |-
+  A real, HMAC-signed webhook surface across seven event categories. Wildcard families
+  are the documented subscription granularity; concrete event names are those named
+  verbatim in the docs. Feeds the AsyncAPI at asyncapi/routebase-webhooks-asyncapi.yml.

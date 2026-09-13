@@ -1,0 +1,59 @@
+generated: '2026-09-13'
+method: searched
+source: |-
+  https://docs.routebase.dev/cli-overview/ and https://docs.routebase.dev/cli-in-cicd/,
+  plus the NuGet package Routebase.Cli (see packages/routebase-packages.yml).
+name: routebase
+binary: routebase
+distribution:
+  registry: nuget
+  package: Routebase.Cli
+  package_url: https://www.nuget.org/packages/Routebase.Cli
+  runtime: .NET 10 runtime
+install:
+- dotnet tool install --global Routebase.Cli
+upgrade:
+- dotnet tool update --global Routebase.Cli
+authentication:
+  method: api-key
+  config_command: routebase config set-api-key
+  key_prefix: rb_live_
+  region_env: ROUTEBASE_REGION
+  region_note: |-
+    ROUTEBASE_REGION (us|eu) takes precedence over persisted config; preferred in CI.
+    Persist with `routebase config set-region <us|eu>`.
+command_groups:
+- group: config
+  commands:
+  - routebase config set-api-key
+  - routebase config set-url
+  - routebase config set-region
+  - routebase config set-project
+  - routebase config show
+- group: testing-security
+  commands:
+  - routebase run           # execute test suites (gates CI)
+  - routebase scan          # run OWASP API security scans
+  - routebase promote       # promote spec versions after deployment
+- group: docs
+  commands:
+  - routebase docs pull     # sync docs from workspace to Markdown
+  - routebase docs push     # sync docs from Markdown to workspace
+- group: info
+  commands:
+  - routebase list suites <project-id>
+exit_codes:
+- {code: 0, meaning: Success}
+- {code: 1, meaning: Test/scan failure or policy violation}
+- {code: 2, meaning: Configuration error (missing API key, invalid region, bad flag)}
+- {code: 3, meaning: Network error or incomplete run (timeout/cancellation)}
+- {code: 4, meaning: Authentication failure (wrong key or insufficient permissions)}
+- {code: 5, meaning: Resource not found (project, suite, profile, spec, version, environment)}
+- {code: 6, meaning: Documentation conflict (remote changes since pull)}
+ci:
+  github_action: true
+  note: |-
+    Ships a GitHub Action (changelog 1.8.0); `routebase run` gates CI via exit codes.
+    See docs.routebase.dev/cli-in-cicd/. Backs the cli* operationIds in the public
+    OpenAPI (cliListSuites, cliRunTestSuite, cliGetRunStatus, cliDownloadReport,
+    cliListEnvironments).

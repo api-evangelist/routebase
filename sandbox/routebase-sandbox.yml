@@ -1,0 +1,45 @@
+generated: '2026-09-13'
+method: searched
+source: https://docs.routebase.dev/test-data/
+model: |-
+  Routebase is API-lifecycle tooling, not a payments/financial provider, so there are no
+  test cards, test IBANs or test-vs-live secret-key modes. Its "sandbox" is a native
+  test-data system for the test-suite runner and mock server: fixtures, seeds and
+  snapshots. Values below are the documented facilities, not invented test credentials.
+key_modes:
+  present: false
+  detail: |-
+    API keys are single-mode and prefixed rb_live_ (no rb_test_ counterpart is documented).
+    Isolation is by environment and by key permission scope + optional project restriction.
+test_data:
+  fixtures:
+    description: Reusable structured data sets (YAML or JSON) referenced by placeholder.
+    reference_syntax: '{{fixture.*}}'
+    example: '{{fixture.users.alice.email}}'
+    features:
+    - table mode (schema-linked)
+    - advanced mode (raw)
+    - array indexing
+    - 'wildcards [*]'
+    - JSONPath filters
+    transforms:
+    - '|toJson'
+    - '|count'
+    - '|random'
+    - '|pluck:field'
+    - '|where:field=value'
+    max_size: 1 MB per fixture
+    plan_limits: {free: 5, starter: 25, pro: 100, enterprise: unlimited}
+  seeds:
+    description: HTTP request sequences for setup/teardown, run before or after test suites.
+    supports: [HTTP requests, fixture loops, delays, test-case references]
+    default_timeout_seconds: 60
+  snapshots:
+    description: Recorded known-good states restored before suite runs to a consistent baseline.
+    detail: Store resource IDs and cleanup instructions without persisting personal data.
+environment:
+  scope: Single environment per project; cross-project sharing via org library (future feature).
+consumers: [test-suite runner, mock server, AI agents via MCP]
+note: |-
+  Fixtures/seeds/snapshots attach to suites via pre-run seeds, post-run seeds and snapshot
+  resets. This is the console/sandbox surface for the testing product.

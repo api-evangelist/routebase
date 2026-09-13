@@ -1,0 +1,43 @@
+generated: '2026-09-11'
+method: searched
+source: https://routebase.dev/pricing/
+currency: USD
+billing_note: Paid tiers billed annually per user. All accounts start with a 14-day Pro trial, no credit card required.
+plan_count: 4
+plans:
+- name: Free
+  price: 0
+  period: forever
+  limits:
+    users: 1
+    projects: 2
+    mock_requests_per_month: 1000
+  includes: [Auto-generated docs portal, OpenAPI import & export]
+- name: Starter
+  price: 9
+  unit: per user/month
+  period: annual
+  limits:
+    users: unlimited
+    projects: 10
+    mock_requests_per_month: 10000
+  includes: [Scheduled test runs, Email support]
+- name: Pro
+  price: 19
+  unit: per user/month
+  period: annual
+  popular: true
+  limits:
+    projects: unlimited
+    specs: unlimited
+    mock_requests_per_month: 100000
+  includes: [Git branching, Governance & security scanning, Monitoring & alerts, Custom docs domain]
+- name: Enterprise
+  price: 39
+  unit: per user/month
+  period: annual
+  minimum_seats: 25
+  limits:
+    mock_requests_per_month: unlimited
+    monitors: unlimited
+  includes: [SAML SSO & SCIM provisioning, Audit log export, Dedicated support & SLA]

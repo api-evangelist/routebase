@@ -1,0 +1,83 @@
+# Routebase
+
+> Routebase keeps your docs, mocks, and tests in sync with your API. Those copies drift apart as soon as the API changes, because each of them holds its own version of the contract. One living OpenAPI specification is the single source of truth instead, so you change it once and the docs, mock servers, tests, and monitors follow in a single publish. Routebase writes that specification for you if your API doesn't have one. Its testing replaces Postman collections outright with declarative test suites, chained scenarios, data-driven runs, OWASP API Top 10 scanning, and a CLI that gates CI, with or without a spec. Every workspace ships a built-in MCP (Model Context Protocol) server that covers the full feature set, so AI agents work the same spec as your team under the same permissions.
+
+The platform covers five lifecycle stages: Design (visual OpenAPI editor with spec branches and merge requests), Mock (spec-driven mock servers with realistic data), Test (suites, assertions, OWASP security scanning), Document (published docs portals), and Agents (MCP server).
+
+An existing OpenAPI file is not a prerequisite. Start from an empty specification and add endpoints in the visual editor, from a CRUD or auth template, or from a Postman or Insomnia collection — Routebase builds the OpenAPI as you go. Testing works with no specification at all: a test case is a plain HTTP request, and linking it to a designed endpoint is optional and only needed for contract testing.
+
+## What Routebase is
+
+- An API testing tool: test cases are plain HTTP requests with one of ten auth schemes; assertions are declarative (6 types × 10 operators, no test scripts to maintain); cases chain into scenarios that pass extracted values downstream; suites run once per row of a data set, on a cron schedule, or in CI via the CLI and GitHub Action with exit codes. Postman and Insomnia collections import directly. No OpenAPI spec is required.
+- An API security scanner: OWASP API Top 10 scanning with 13 scanners, multi-identity personas, finding triage, and a CI gate.
+- An API design tool: a visual OpenAPI 3.0/3.1 editor with JSON Schema builder, spec branches with merge requests, and 53+ governance lint rules.
+- A mock server: spec-driven mocks with realistic data, stateful behaviour, latency and failure simulation.
+- An API documentation portal: branded, on your own domain, with try-it console, search, versioning, and llms.txt output.
+- An API monitor: uptime and check monitoring with alert policies, plus contract drift detection between spec and production.
+- An MCP server: it covers the full feature set, so AI agents design, test, and document under your workspace's permissions.
+
+## Full content
+
+- [llms-full.txt](https://routebase.dev/llms-full.txt): the complete site content as a single markdown document
+
+## Pages
+
+- [Homepage](https://routebase.dev/): product overview, lifecycle stages, FAQ
+- [API Design](https://routebase.dev/api-design.md): visual OpenAPI editor, JSON Schema builder, spec branches with merge requests, 53+ governance lint rules, OpenAPI 3.0/3.1 import and export
+- [API Mocking](https://routebase.dev/api-mocking.md): spec-driven mock servers, realistic synthetic data, stateful mocks, latency and failure simulation, proxy mode
+- [API Testing](https://routebase.dev/api-testing.md): test suites with 6 assertion types and 10 operators, ten auth schemes, fixtures/seeds/snapshots, OWASP API Top 10 scanning, CLI and CI automation
+- [API Documentation](https://routebase.dev/api-documentation.md): branded docs portals with try-it playground, search, custom domains with auto-SSL, llms.txt output for published docs
+- [MCP Server](https://routebase.dev/mcp-server.md): connect AI agents via MCP — design a whole OpenAPI spec and its test suites by prompt; the full feature set as tools, 13 prompts, 12 resources, OAuth remote connector or stdio, RBAC-scoped permissions
+- [Pricing](https://routebase.dev/pricing.md): Free plan ($0 forever); Starter $9, Pro $19, and Enterprise $39 per user/month billed annually ($11/$23/$45 billed monthly); same amounts in EUR for European customers. Enterprise includes SAML SSO, SCIM, and audit log export — self-service, 25 seats minimum. Every account starts with a 14-day Pro trial, no credit card required
+- [Microsoft Marketplace](https://routebase.dev/microsoft-marketplace.md): buy Routebase through Microsoft Marketplace — Starter, Pro, and Enterprise at the same USD list prices, billed by Microsoft on your existing account and shown in your local currency; Microsoft Entra ID sign-in, EU or US region on Azure; the Free plan is direct only
+
+## Comparisons
+
+- [Postman Alternative](https://routebase.dev/postman-alternative.md): Postman alternative for API testing and the lifecycle around it — declarative suites, scenarios, data-driven runs, ten auth schemes, OWASP scans, CLI in CI, plus design, mocks, docs, and monitoring from one spec; imports Postman and Insomnia collections; EU or US hosting
+- [Stoplight Alternative](https://routebase.dev/stoplight-alternative.md): Stoplight alternative covering the whole lifecycle — design-first OpenAPI editing plus test execution, monitoring, and built-in governance, EU-hosted
+- [ReadMe Alternative](https://routebase.dev/readme-alternative.md): ReadMe alternative with per-user pricing — branded docs portals from OpenAPI, plus mocks, tests, and monitoring from the same spec
+- [Swagger Alternative](https://routebase.dev/swagger-alternative.md): Swagger alternative for teams that outgrew Swagger UI and Editor or hit SwaggerHub's limits — visual OpenAPI design, branded docs portal on your own domain, unmetered test execution, mocks, and monitoring from one spec
+- [Insomnia Alternative](https://routebase.dev/insomnia-alternative.md): Insomnia alternative that adds what a client does not cover — a hosted docs portal, spec branches with merge requests, and API monitoring; imports Insomnia Export v4 natively and exports back to it
+- [Apidog Alternative](https://routebase.dev/apidog-alternative.md): Apidog alternative for teams that need EU or US data residency on every plan rather than an enterprise tier, API monitoring, and an MCP server an agent can build with — not only read from
+- [Bruno Alternative](https://routebase.dev/bruno-alternative.md): Routebase next to Bruno — Bruno keeps collections local and offline, Routebase runs what has to be shared: hosted mock servers with a stable URL, a published docs portal, scheduled runs and monitoring
+- [Mintlify Alternative](https://routebase.dev/mintlify-alternative.md): Mintlify alternative where the docs portal is generated from a spec you also design, mock, test and monitor in the same product; per-user pricing that undercuts a flat rate below roughly 24 editors
+
+## Blog
+
+Practical writing on designing, mocking, testing, and shipping APIs — and making them ready for AI agents. Full text of every post is included in llms-full.txt.
+
+- [What Belongs in an API Style Guide](https://routebase.dev/blog/what-belongs-in-an-api-style-guide/index.md) (2026-09-01): Most style guides fail with too many rules, not too few. The work is deciding which rules stop a build, which leave a note, and which you will never enforce.
+- [Writing API Descriptions an LLM Can Actually Use](https://routebase.dev/blog/api-descriptions-llms-can-use/index.md) (2026-08-25): A linter flags a missing description, not a useless one, and the useless one is what an agent chokes on. What to write, what to leave out, and how to test it.
+- [Migrating from Postman to an OpenAPI-First Workflow](https://routebase.dev/blog/migrating-from-postman-to-openapi-first/index.md) (2026-08-14): The Postman migration everyone postpones is mostly mechanical, and that is agent work. How an AI over MCP imports collections and rebuilds your assertions.
+- [Why Your OpenAPI Spec Drifts (and How to Catch It)](https://routebase.dev/blog/why-openapi-specs-drift/index.md) (2026-07-24): Every API contract decays once nothing enforces it. The four ways specs drift, why code generation does not save you, and how to make the spec true again.
+- [Consistent Error Handling with RFC 9457 Problem Details](https://routebase.dev/blog/consistent-error-handling-rfc-9457/index.md) (2026-07-08): Why every API needs exactly one error shape, how RFC 9457 Problem Details provides it, and the conventions that make it stick across every endpoint.
+- [API Design Principles: A Practical Guide](https://routebase.dev/blog/api-design-principles/index.md) (2026-07-07): Six design decisions that make or break an API, from resource modeling, naming, and idempotency to pagination, error formats, and versioning, with examples.
+- [Designing Agent-Ready APIs](https://routebase.dev/blog/designing-agent-ready-apis/index.md) (2026-07-06): AI agents are becoming API consumers. What that changes about API design, from descriptions as prompts and actionable errors to MCP as the new surface.
+- [Design-First vs. Code-First API Development](https://routebase.dev/blog/design-first-vs-code-first/index.md) (2026-07-03): Two workflows for building APIs, and why the order you write the contract in changes everything downstream, from parallel work and review quality to drift.
+- [Versioning APIs Without Breaking Your Consumers](https://routebase.dev/blog/api-versioning-without-breaking-consumers/index.md) (2026-07-01): What actually counts as a breaking change, why additive evolution beats version bumps, and how to run a deprecation your consumers will forgive.
+
+## Changelog
+
+- [Changelog](https://routebase.dev/changelog.md): every released version with its date and what it added, improved or changed — newest first
+
+## Support
+
+- [Support](https://routebase.dev/support/): how to reach us — email support, a contact form, and what to include so the first reply solves it
+
+## Documentation
+
+The product documentation lives on its own host and is not part of this site's content above.
+
+- [Routebase documentation](https://docs.routebase.dev/): guides for every part of the product — designing specs, mock servers, test suites, security scanning, monitoring, docs portals, the MCP server, and the CLI
+- [Documentation llms.txt](https://docs.routebase.dev/llms.txt): the full page index of the documentation portal
+
+## Legal
+
+- [Terms of Service](https://routebase.dev/terms/): B2B terms of service — Routebase sells to businesses only
+- [Privacy Policy](https://routebase.dev/privacy/): privacy policy for this website
+- [Privacy Policy (Application)](https://routebase.dev/privacy/app/): privacy policy for the application at app.routebase.dev
+- [Legal Notice](https://routebase.dev/imprint/): legal notice / imprint (Routebase GmbH)
+
+## App
+
+- [Sign up](https://app.routebase.dev/): every account starts with a 14-day Pro trial, no credit card required. Free plan available. EU or US data residency, chosen at signup.

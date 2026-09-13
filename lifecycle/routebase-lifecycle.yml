@@ -1,0 +1,45 @@
+generated: '2026-09-13'
+method: searched
+source: |-
+  OpenAPI info.description (openapi/routebase-public-api-openapi.json),
+  https://routebase.dev/changelog/ and https://docs.routebase.dev/deprecation/,
+  https://docs.routebase.dev/spec-versioning/.
+versioning:
+  scheme: unversioned-path
+  current: '1.0.0'
+  docs: https://docs.routebase.dev/
+  detail: |-
+    The public API is not versioned by path. info.version numbers the OpenAPI document,
+    not the API. SCIM is pinned at /scim/v2. Breaking changes to the public contract are
+    announced in the release notes before they ship.
+breaking_change_policy:
+  mechanism: release-notes-announcement
+  url: https://routebase.dev/changelog/
+  detail: |-
+    Routebase's own-API policy: "A breaking change here is announced in the release notes
+    before it ships." There is no separate dedicated own-API deprecation-policy page.
+deprecation:
+  own_api_sunset_headers: false
+  detail: |-
+    No Deprecation or Sunset response headers are declared in Routebase's own public
+    OpenAPI (see conformance/ rfc8594 conforms:false).
+  product_feature:
+    url: https://docs.routebase.dev/deprecation/
+    note: |-
+      Distinct from Routebase's own-API posture: the product LETS ITS CUSTOMERS deprecate
+      their endpoints, sending RFC 8594 Deprecation/Sunset headers and an RFC 7234
+      Warning:299 header, with configurable minimum grace periods (Relaxed 30d / Standard
+      90d / Strict 180d) and sunset reminders at 30/14/7/1 days. This is a feature of the
+      platform, not a commitment about the Routebase API itself, so no Deprecation pointer
+      is wired for it.
+sla:
+  stated: false
+  detail: No formal uptime SLA is published in the docs.
+status_page:
+  present: false
+  detail: |-
+    status.routebase.dev 301-redirects to the app SPA (app.routebase.dev); there is no
+    public incident/uptime status page. No StatusPage pointer wired.
+deprecated_operations: []
+note: |-
+  No operations in the public OpenAPI are marked deprecated:true.

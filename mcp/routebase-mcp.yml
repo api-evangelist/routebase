@@ -1,0 +1,65 @@
+generated: '2026-09-11'
+method: searched
+source: |-
+  https://docs.routebase.dev/mcp-quickstart/ and /mcp-tool-reference/, plus the
+  live 401 from https://mcp.routebase.dev (auth-gated, not a soft-404) and the
+  RFC 9728 protected-resource document at mcp.routebase.dev/.well-known/oauth-protected-resource.
+name: Routebase MCP Server
+description: |-
+  Every Routebase workspace ships a built-in MCP server exposing the full product
+  feature set (408 tools across 31 categories) so AI agents work the same living
+  OpenAPI spec as the team, under the same API-key permission scopes.
+deployment:
+  mode: both
+  endpoint: https://mcp.routebase.dev
+  transport: streamable-http
+  install: npx -y routebase-mcp@latest --stdio
+  package: https://www.npmjs.com/package/routebase-mcp
+  auth: both
+  auth_detail: |-
+    Remote: X-API-Key header (rb_live_ key) OR OAuth sign-in (Claude connector only,
+    authorization server https://auth.routebase.dev). Stdio: ROUTEBASE_API_KEY env var.
+  verified: probed
+regions:
+  eu: https://mcp.routebase.dev
+  us: https://mcp.routebase.dev/?region=us
+  note: EU is default; a region mismatch surfaces as "no tools available", not an error.
+tool_categories:
+- name: API Specifications
+  count: 8
+  sample: [create_spec, validate_spec, export_spec]
+- name: Auth Configuration
+  count: 5
+  sample: [set_environment_auth, set_testcase_auth]
+- name: Branches & Merge Requests
+  count: 10
+  sample: [get_merge_request, merge_merge_request]
+- name: Context & Session
+  count: 6
+  sample: [set_context, enable_toolset, list_projects]
+- name: Documentation
+  count: 33
+  sample: [create_doc_page, publish_doc_version, upload_doc_image]
+- name: Endpoints
+  count: 19
+  sample: [create_endpoint, add_parameter, delete_response]
+- name: Mock Server
+  count: 25
+  sample: [create_mock_server, generate_rules_from_spec]
+- name: Monitoring
+  count: 21
+  sample: [generate_monitors_from_spec, list_incidents]
+- name: Testing
+  count: 87
+  sample: [run_test_case, create_test_suite, sync_test_from_spec]
+- name: Versions
+  count: 18
+  sample: [publish_version, create_version, generate_changelog]
+tool_total: 408
+category_total: 31
+tool_reference: https://docs.routebase.dev/mcp-tool-reference/
+quickstart: https://docs.routebase.dev/mcp-quickstart/
+note: |-
+  Live tools/list is auth-gated (HTTP 401 without a key), so the tool inventory above
+  is read from the published tool reference (names + category counts), not from an
+  authenticated introspection. Per-tool inputSchema requires an authenticated session.

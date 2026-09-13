@@ -1,0 +1,22 @@
+generated: '2026-09-13'
+method: generated
+source: |-
+  Generated from openapi/routebase-public-api-openapi.json (operationIds verified against
+  the spec) plus conventions/, errors/, scopes/, rate-limits/ and the CLI docs.
+skills:
+- file: routebase-run-tests-in-ci.md
+  name: Run a Routebase test suite in CI and gate the build
+  api: openapi/routebase-public-api-openapi.json
+  operations: [cliListSuites, cliListEnvironments, cliRunTestSuite, cliGetRunStatus, cliDownloadReport]
+- file: routebase-promote-spec-version.md
+  name: Promote an OpenAPI spec version into an environment
+  api: openapi/routebase-public-api-openapi.json
+  operations: [getApiSpecs, getSpecVersions, exportSpecVersion, promoteSpecVersion, exportApiSpec]
+- file: routebase-run-security-scan.md
+  name: Run an OWASP security scan and export findings as SARIF
+  api: openapi/routebase-public-api-openapi.json
+  operations: [enqueueScanRun, getScanRunById, getSecurityFindings, exportSecurityFindingsSarif]
+- file: routebase-provision-scim-users.md
+  name: Provision users and groups via SCIM 2.0
+  api: openapi/routebase-public-api-openapi.json
+  operations: [scimServiceProviderConfig, scimListUsers, scimCreateUser, scimGetUser, scimPatchUser, scimDeleteUser, scimListGroups, scimCreateGroup, scimPatchGroup]

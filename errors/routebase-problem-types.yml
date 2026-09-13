@@ -1,0 +1,32 @@
+generated: '2026-09-11'
+method: derived
+source: |-
+  Derived from openapi/routebase-public-api-openapi.json response definitions.
+  The main API uses RFC 9457 Problem Details (application/problem+json); the SCIM
+  surface uses the SCIM 2.0 error envelope.
+format: rfc9457
+envelope:
+  media_type: application/problem+json
+  schema: '#/components/schemas/Problem'
+  fields: [type, title, status, detail, instance]
+scim_envelope:
+  schema: '#/components/schemas/ScimError'
+  fields: [schemas, detail, status]
+  note: schemas always contains urn:ietf:params:scim:api:messages:2.0:Error.
+status_codes:
+- status: '400'
+  meaning: Bad request — validation failure on the request body or parameters.
+- status: '401'
+  meaning: Unauthorized — missing or invalid API key / bearer token.
+- status: '403'
+  meaning: Forbidden — the key lacks the scope required for the operation.
+- status: '404'
+  meaning: Not found — the project, spec, version, page or resource does not exist or is not visible to the key.
+- status: '409'
+  meaning: Conflict — returned as application/problem+json (Problem); e.g. promoting/creating into a conflicting state, or a report not yet ready.
+- status: '429'
+  meaning: Too Many Requests — rate limit exceeded; application/problem+json with a Retry-After header.
+  headers: [Retry-After]
+note: |-
+  401/403/404 are declared without a response body in the spec. 409 and 429 carry the
+  Problem schema. No provider-specific error-code catalog beyond HTTP status is published.

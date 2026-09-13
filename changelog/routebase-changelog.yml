@@ -1,0 +1,28 @@
+generated: '2026-09-11'
+method: searched
+source: https://routebase.dev/changelog.md
+scheme: semver
+current_version: 1.8.0
+url: https://routebase.dev/changelog/
+entries:
+- version: 1.8.0
+  date: '2026-09-04'
+  breaking: true
+  highlights: |-
+    CLI exit-code mapping changed (exit code 4 for authentication errors; ships Routebase.Cli 2.0.0).
+    Microsoft Marketplace integration with 14-day trials, "Sign in with Microsoft", GitHub Actions
+    support, MSIX desktop packaging, auto-generated mock server rules, API Designer spec overview.
+    Improvements: SSO metadata display, light theme, test runner layout, settings navigation.
+- version: 1.7.1
+  date: '2026-08-24'
+  breaking: false
+  highlights: |-
+    Agent image upload tools for documentation/branding, image listing/deletion, guide sync with
+    image handling, merge conflict visualization with field-level diffs.
+- version: 1.7.0
+  date: '2026-08-22'
+  breaking: true
+  highlights: |-
+    Test suite configuration refactored (base URL and variables resolve from environments, not suite
+    settings). Additions: image width/alignment controls, full-size image viewing, environment version
+    promotion history, enhanced promote dialog, portal-themed diagram styling, search API context labels.

@@ -1,0 +1,37 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for Routebase Public API
+  version: 1.0.0
+extends: openapi/routebase-public-api-openapi.json
+x-provenance:
+  generated: '2026-09-13'
+  method: generated
+  source: API Evangelist enrichment pipeline (local artifacts)
+actions:
+- target: $.info
+  update:
+    x-apievangelist-enriched: '2026-09-13'
+    x-artifacts:
+      authentication: authentication/routebase-authentication.yml
+      scopes: scopes/routebase-scopes.yml
+      conventions: conventions/routebase-conventions.yml
+      errors: errors/routebase-problem-types.yml
+      rate-limits: rate-limits/routebase-rate-limits.yml
+      lifecycle: lifecycle/routebase-lifecycle.yml
+      conformance: conformance/routebase-conformance.yml
+      data-model: data-model/routebase-data-model.yml
+      webhooks: asyncapi/routebase-webhooks-catalog.yml
+      mcp: mcp/routebase-mcp.yml
+      cli: cli/routebase-cli.yml
+      sandbox: sandbox/routebase-sandbox.yml
+- target: $.info
+  update:
+    x-rate-limit:
+      window_seconds: 60
+      api_key_per_user: 100
+      status: 429
+      headers: [Retry-After]
+- target: $.components.securitySchemes.ApiKeyAuth
+  update:
+    x-key-prefix: rb_live_
+    x-scoped: Per-key permission scopes + optional single-project restriction.

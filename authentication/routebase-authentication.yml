@@ -1,0 +1,28 @@
+generated: '2026-09-11'
+method: derived
+source: openapi/routebase-public-api-openapi.json
+summary:
+  types:
+  - apiKey
+  - http
+  api_key_in:
+  - header
+schemes:
+- name: ApiKeyAuth
+  type: apiKey
+  in: header
+  parameter: X-API-Key
+  description: |-
+    An organization API key, created under Settings then API Keys. Keys start with
+    `rb_live_` and carry their own permission scopes, so a key only reaches what it
+    was granted.
+  sources:
+  - openapi/routebase-public-api-openapi.json
+- name: ScimBearerAuth
+  type: http
+  scheme: bearer
+  description: |-
+    The SCIM token of the organization, issued when SCIM provisioning is enabled.
+    It is separate from an API key and only unlocks the SCIM endpoints.
+  sources:
+  - openapi/routebase-public-api-openapi.json

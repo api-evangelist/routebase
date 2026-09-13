@@ -1,0 +1,66 @@
+generated: '2026-09-11'
+method: derived
+source: |-
+  Derived from openapi/routebase-public-api-openapi.json and
+  https://docs.routebase.dev/api-keys/. Cross-links errors/, scopes/, authentication/,
+  rate-limits/, lifecycle/.
+authentication:
+  styles: [api-key, oauth2, scim-bearer]
+  api_key: X-API-Key header, keys prefixed rb_live_, scoped per key and per project.
+  oauth2: authorization server https://auth.routebase.dev (Claude connector / MCP).
+  scim: separate SCIM bearer token, unlocks only /scim/v2 endpoints.
+  see: authentication/routebase-authentication.yml
+pagination:
+  style: offset
+  params: [Skip, Take]
+  defaults: Skip defaults to 0; Take is a max item count.
+  scim:
+    style: 1-based-index
+    params: [startIndex, count]
+    defaults: startIndex defaults to 1; count defaults to 100.
+regions:
+  header: X-RB-Region
+  note: |-
+    An X-RB-Region header is defined on all 37 operations; Routebase offers EU or US
+    data residency chosen at signup (mcp.routebase.dev/?region=us for the US MCP region).
+conditional_requests:
+  supported: partial
+  detail: getDocTree supports ETag / If-None-Match with a 304 Not Modified response.
+error_envelope:
+  format: rfc9457
+  media_type: application/problem+json
+  see: errors/routebase-problem-types.yml
+rate_limit_signaling:
+  status: '429'
+  headers: [Retry-After]
+  see: rate-limits/routebase-rate-limits.yml
+versioning:
+  path_versioned: false
+  detail: |-
+    The API is not versioned by path; info.version numbers the document, not the API.
+    Breaking changes are announced. SCIM is pinned at /scim/v2. See lifecycle/.
+idempotency:
+  coverage: none
+  mechanism: none
+  detail: |-
+    No Idempotency-Key header or replay-protection parameter is defined anywhere in the
+    public OpenAPI spec. Writes (createDocPage, promoteSpecVersion, executeTestSuite,
+    scimCreateUser, ...) offer no documented idempotency key. 409 Conflict is used for
+    state conflicts, not for idempotent replay.
+reversibility:
+  applicable: true
+  grade: documented
+  detail: |-
+    Version control provides a partial reversal path: promoteSpecVersion records a
+    version into an environment and getSpecVersions/promoteSpecVersion together let an
+    older spec version be re-promoted (effective rollback). No stated time window.
+    SCIM users/groups can be deleted (scimDeleteUser/scimDeleteGroup) but no restore/undo
+    operation or restoration window is documented. Doc pages can be updated but no
+    delete-then-restore path is published.
+  surfaces:
+  - operation: promoteSpecVersion
+    reversal: re-promote a prior version (getSpecVersions -> promoteSpecVersion)
+    window: none stated
+  - operation: scimDeleteUser
+    reversal: none documented
+    window: na

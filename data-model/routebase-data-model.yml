@@ -1,0 +1,65 @@
+generated: '2026-09-13'
+method: derived
+source: |-
+  Derived from openapi/routebase-public-api-openapi.json component schemas ($ref links
+  and id-reference fields such as projectId/specId/versionId/scanRunPublicId). Every
+  identifier in the API is a public UUID.
+id_convention: All resource identifiers are public UUIDs (no type-prefixed ids).
+entities:
+- name: Project
+  note: Top-level container; projectId scopes specs, test-suites, docs, security, environments.
+- name: Environment
+  belongs_to: [Project]
+  note: isReadOnly environments reject writes; typed by EnvironmentType.
+- name: ApiSpec
+  belongs_to: [Project]
+  has_many: [SpecVersion]
+- name: SpecVersion
+  belongs_to: [ApiSpec]
+  note: status is VersionStatus; promoted into an Environment via PromotionResult.
+- name: TestSuite
+  belongs_to: [Project]
+  has_many: [TestCaseExecutionResult (via runs)]
+  note: optional testSuiteFolderId; executed against an environmentId + optional dataSetId.
+- name: TestRun
+  note: CliRunResponse/TestSuiteExecutionResult (testRunId/testRunPublicId); contains IterationResult -> TestCaseExecutionResult -> AssertionResult.
+- name: ScanRun
+  belongs_to: [Project]
+  via: scanProfilePublicId
+  has_many: [SecurityFinding]
+- name: SecurityFinding
+  belongs_to: [ScanRun]
+  via: scanRunPublicId
+  note: severity/confidence/status enums; assignedToUserId / resolvedByUserId reference users; exportable as SARIF.
+- name: Documentation
+  belongs_to: [Project]
+  has_many: [DocVersion]
+  note: has Branding + versioningScheme.
+- name: DocVersion
+  belongs_to: [Documentation]
+  has_many: [DocTreeNode]
+  note: status DocVersionStatus, visibility DocVisibility.
+- name: DocTreeNode
+  note: DocTreeFolder (children -> DocTreeNode), DocTreePage, DocTreeSpecSnapshot; pages have DocPageType.
+- name: ScimUser
+  via: /scim/v2/{orgSlug}/Users
+  note: externalId + emails[] (ScimEmail) + meta (ScimMeta); SCIM 2.0 resource.
+- name: ScimGroup
+  via: /scim/v2/{orgSlug}/Groups
+  has_many: [ScimUser (via members ScimGroupMemberRef)]
+relationships:
+- {from: Environment, to: Project, kind: belongs_to, via: projectId}
+- {from: ApiSpec, to: Project, kind: belongs_to, via: projectId}
+- {from: SpecVersion, to: ApiSpec, kind: belongs_to, via: specId}
+- {from: PromotionResult, to: Environment, kind: belongs_to, via: environmentId}
+- {from: PromotionResult, to: SpecVersion, kind: belongs_to, via: versionId}
+- {from: TestSuite, to: Project, kind: belongs_to, via: projectId}
+- {from: TestSuiteExecutionResult, to: TestCaseExecutionResult, kind: has_many, via: results}
+- {from: TestCaseExecutionResult, to: AssertionResult, kind: has_many, via: assertionResults}
+- {from: ScanRun, to: Project, kind: belongs_to, via: projectId}
+- {from: SecurityFinding, to: ScanRun, kind: belongs_to, via: scanRunPublicId}
+- {from: Documentation, to: Project, kind: belongs_to, via: projectId}
+- {from: Documentation, to: DocVersion, kind: has_many, via: versions}
+- {from: DocVersion, to: DocTreeNode, kind: has_many, via: items}
+- {from: DocTreeFolder, to: DocTreeNode, kind: has_many, via: children}
+- {from: ScimGroup, to: ScimUser, kind: has_many, via: members}

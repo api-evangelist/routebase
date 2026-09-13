@@ -1,0 +1,71 @@
+generated: '2026-09-11'
+method: derived
+source: |-
+  Derived by binding the public OpenAPI operations (openapi/routebase-public-api-openapi.json,
+  37 ops) to MCP tool names published at https://docs.routebase.dev/mcp-tool-reference/.
+  The live MCP schema is auth-gated (401), so bindings are by name/semantics with honest
+  confidence, not by fetched inputSchema.
+surfaces:
+  openapi: openapi/routebase-public-api-openapi.json
+  openapi_host: https://api.routebase.dev
+  mcp: https://mcp.routebase.dev
+  mcp_gated: true
+  note: |-
+    The two surfaces are asymmetric on purpose. The public REST API is the small
+    "commitment to customers" contract (37 ops); the MCP server exposes the full
+    product (408 tools) including design/authoring operations that have no public REST op.
+crosswalk:
+- tool: run_test_case
+  category: Testing
+  rest: [cliRunTestSuite, executeTestSuite]
+  binding: semantic
+  confidence: medium
+  note: CLI run (blocking) and project test-suite execute both drive test runs.
+- tool: export_spec
+  category: API Specifications
+  rest: [exportApiSpec, exportSpecVersion]
+  binding: semantic
+  confidence: high
+- tool: publish_version
+  category: Versions
+  rest: [promoteSpecVersion]
+  binding: semantic
+  confidence: medium
+  note: promoteSpecVersion records a version into an environment; closest MCP verb is publish/promote.
+- tool: create_doc_page
+  category: Documentation
+  rest: [createDocPage]
+  binding: name
+  confidence: high
+- tool: update_doc_page
+  category: Documentation
+  rest: [updateDocPage]
+  binding: name
+  confidence: high
+- tool: create_doc_folder
+  category: Documentation
+  rest: [createDocFolder]
+  binding: name
+  confidence: high
+mcp_only:
+- tool: create_spec / validate_spec / create_endpoint / add_parameter
+  reason: Visual design/authoring surface; no public REST write op (design is app-only, "/api/** serves the web app").
+- tool: create_mock_server / generate_rules_from_spec
+  reason: Mock server management has no public REST op.
+- tool: generate_monitors_from_spec / list_incidents
+  reason: Monitoring surface has no public REST op.
+- tool: get_merge_request / merge_merge_request
+  reason: Branch/merge-request surface has no public REST op.
+- tool: ~370 further tools across 31 categories
+  reason: Full-product MCP surface exceeds the 37-op public REST contract.
+rest_only:
+- rest: [scimListUsers, scimCreateUser, scimGetUser, scimReplaceUser, scimPatchUser, scimDeleteUser, scimListGroups, scimCreateGroup, scimGetGroup, scimPatchGroup, scimDeleteGroup, scimResourceTypes, scimSchemas, scimServiceProviderConfig]
+  reason: SCIM 2.0 provisioning is a standards surface for IdPs (Okta/Entra), not an agent tool; MCP org tools are read-only.
+- rest: [getSecurityFindings, exportSecurityFindingsSarif, getScanRunById, cliListEnvironments, cliListSuites, cliGetRunStatus, cliDownloadReport, getApiSpecs, getSpecVersions, getDocumentations, getDocTree, getDocPageDetail, reorderTreeItems, enqueueScanRun, getSecurityFindings]
+  reason: Read/CLI-oriented ops; MCP exposes equivalent capability under differently-named tools not confirmable without authenticated introspection.
+coverage:
+  rest_operations: 37
+  mcp_tools: 408
+  mapped_rest: 6
+  mcp_only_categories: 31
+  note: Low REST->MCP overlap is expected — the public REST contract is a deliberate subset.

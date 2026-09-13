@@ -1,0 +1,13 @@
+# Security contact for routebase.dev
+# Format: RFC 9116. Expires is mandatory and must stay in the future —
+# renew this file before the date below, or scanners treat it as invalid.
+#
+# The OpenPGP key referenced under Encryption expires 2029-09-08 and must be
+# renewed before then, otherwise reporters cannot encrypt to it any more.
+# Fingerprint: 0E38 C48B 57FA 827F 7BC1 C819 D5F6 59D3 0C19 3594
+
+Contact: mailto:hello@routebase.dev
+Expires: 2027-09-08T00:00:00.000Z
+Encryption: https://routebase.dev/.well-known/pgp-key.txt
+Preferred-Languages: en, de
+Canonical: https://routebase.dev/.well-known/security.txt

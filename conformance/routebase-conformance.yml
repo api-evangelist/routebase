@@ -1,0 +1,66 @@
+generated: '2026-09-11'
+method: derived
+source: |-
+  Derived from openapi/routebase-public-api-openapi.json and the well-known OAuth/OIDC
+  discovery documents; each entry cites the exact spec/document location.
+conformance:
+- id: rfc9457
+  name: Problem Details for HTTP APIs
+  conforms: true
+  evidence: |-
+    components.schemas.Problem (type/title/status/detail/instance) returned as
+    application/problem+json on 429 and 409 responses in the OpenAPI spec.
+- id: scim2
+  name: SCIM 2.0 (System for Cross-domain Identity Management)
+  conforms: true
+  evidence: |-
+    /scim/v2/{orgSlug}/{Users,Groups,ResourceTypes,Schemas,ServiceProviderConfig}
+    endpoints; ScimError.schemas contains urn:ietf:params:scim:api:messages:2.0:Error;
+    startIndex/count pagination. Documented IdPs: Okta, Microsoft Entra.
+- id: oauth2
+  name: OAuth 2.0 Authorization Server Metadata (RFC 8414)
+  conforms: true
+  evidence: |-
+    https://auth.routebase.dev/.well-known/oauth-authorization-server publishes issuer,
+    authorization_endpoint, token_endpoint, jwks_uri, registration_endpoint, revocation_endpoint.
+- id: oidc
+  name: OpenID Connect Discovery
+  conforms: true
+  evidence: https://auth.routebase.dev/.well-known/openid-configuration (issuer, userinfo_endpoint, jwks_uri, id_token flows).
+- id: rfc9728
+  name: OAuth 2.0 Protected Resource Metadata
+  conforms: true
+  evidence: |-
+    api/mcp/app hosts serve /.well-known/oauth-protected-resource naming
+    authorization_servers and scopes_supported.
+- id: pkce
+  name: PKCE (RFC 7636)
+  conforms: true
+  evidence: auth server metadata code_challenge_methods_supported = [S256, plain].
+- id: oauth-dcr
+  name: OAuth 2.0 Dynamic Client Registration (RFC 7591)
+  conforms: true
+  evidence: auth server metadata registration_endpoint = https://auth.routebase.dev/oidc/register.
+- id: rfc8594
+  name: Deprecation / Sunset HTTP headers
+  conforms: false
+  evidence: No Deprecation or Sunset response headers declared in the OpenAPI spec.
+- id: pagination
+  name: Consistent pagination
+  conforms: true
+  evidence: Skip/Take offset params on list ops; SCIM startIndex/count on SCIM lists.
+domain_standard:
+- id: scim2
+  standard: SCIM 2.0
+  declared_in: openapi/routebase-public-api-openapi.json
+  location: |-
+    components.schemas.ScimError.schemas const urn:ietf:params:scim:api:messages:2.0:Error,
+    /scim/v2/{orgSlug}/Schemas and /ServiceProviderConfig endpoints.
+  note: |-
+    A buyer whose IdP already speaks SCIM 2.0 (Okta, Microsoft Entra) provisions users
+    and groups into Routebase with no bespoke connector. This is the identity-provisioning
+    domain standard for the developer-tooling / SaaS market.
+- id: rfc9457
+  standard: RFC 9457 Problem Details
+  declared_in: openapi/routebase-public-api-openapi.json
+  location: components.schemas.Problem, application/problem+json responses.

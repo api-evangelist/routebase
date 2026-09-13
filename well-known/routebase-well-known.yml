@@ -1,0 +1,65 @@
+generated: '2026-09-11'
+method: probed
+source: live probes of /.well-known/* across every Routebase host
+note: |-
+  security.txt is served on the marketing domain; every API/MCP/app host serves an
+  RFC 9728 OAuth protected-resource document that points at the auth.routebase.dev
+  authorization server, which in turn serves RFC 8414 OAuth AS metadata and OIDC
+  discovery. An SPA catch-all was ruled out: 404s discriminate and every 200 body
+  parses as the real document type.
+hosts:
+- host: routebase.dev
+  documents:
+  - path: /.well-known/security.txt
+    status: 200
+    file: routebase-security.txt
+  - path: /.well-known/openid-configuration
+    status: 404
+  - path: /.well-known/oauth-authorization-server
+    status: 404
+  - path: /.well-known/api-catalog
+    status: 404
+  - path: /.well-known/ai-plugin.json
+    status: 404
+  - path: /apis.json
+    status: 200
+    file: routebase-apis.json
+    note: |-
+      Real first-party APIs.json 0.23 index (2 apis, specificationVersion present) served
+      at the domain root. Parses and carries apis[] + specificationVersion, not an SPA shell.
+- host: www.routebase.dev
+  documents:
+  - path: /.well-known/security.txt
+    status: 200
+    file: routebase-security.txt
+- host: api.routebase.dev
+  documents:
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    file: routebase-api-oauth-protected-resource.json
+  - path: /.well-known/security.txt
+    status: 404
+  - path: /.well-known/openid-configuration
+    status: 404
+- host: mcp.routebase.dev
+  documents:
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    file: routebase-mcp-oauth-protected-resource.json
+  - path: /.well-known/openid-configuration
+    status: 404
+- host: app.routebase.dev
+  documents:
+  - path: /.well-known/oauth-protected-resource
+    status: 200
+    file: routebase-app-oauth-protected-resource.json
+- host: auth.routebase.dev
+  documents:
+  - path: /.well-known/oauth-authorization-server
+    status: 200
+    file: routebase-auth-oauth-authorization-server.json
+  - path: /.well-known/openid-configuration
+    status: 200
+    file: routebase-auth-openid-configuration.json
+  - path: /.well-known/oauth-protected-resource
+    status: 404

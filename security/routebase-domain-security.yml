@@ -1,0 +1,33 @@
+generated: '2026-09-11'
+method: probed
+source: live DNS/TLS/HTTP probes of apis.yml + OpenAPI hosts
+hosts:
+- host: routebase.dev
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Dec 24 23:59:59 2026 GMT
+  hsts: true
+  hsts_max_age: 31536000
+- host: docs.routebase.dev
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Nov 30 02:37:55 2026 GMT
+  hsts: true
+  hsts_max_age: 2592000
+- host: api.routebase.dev
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Nov 30 02:37:55 2026 GMT
+  hsts: true
+  hsts_max_age: 2592000
+domains:
+- domain: routebase.dev
+  dnssec: true
+  caa:
+  - 0 iodef "mailto:denny.riedl@routebase.dev"
+  - 0 issue "digicert.com"
+  - 0 issue "letsencrypt.org"
+  - 0 issuewild "letsencrypt.org"
+  spf: true
+  dmarc: true
+  dmarc_policy: reject

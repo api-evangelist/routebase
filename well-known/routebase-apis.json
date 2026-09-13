@@ -1,0 +1,159 @@
+{
+  "aid": "routebase.dev",
+  "name": "Routebase",
+  "type": "Collection",
+  "kind": "company",
+  "description": "Routebase keeps your API's design, docs, contract tests, mocks and monitoring in one living source so they can't drift apart. MCP included.",
+  "image": "https://routebase.dev/icon.png",
+  "url": "https://routebase.dev/apis.json",
+  "created": "2026-09-11",
+  "modified": "2026-09-11",
+  "specificationVersion": "0.23",
+  "tags": [
+    "api-lifecycle",
+    "api-design",
+    "openapi",
+    "api-documentation",
+    "api-testing",
+    "mocking",
+    "monitoring",
+    "mcp",
+    "developer-tools"
+  ],
+  "apis": [
+    {
+      "aid": "routebase.dev:public-api",
+      "name": "Routebase Public API",
+      "description": "This reference covers the part of the Routebase API that is a commitment to customers. Every endpoint here is called by a shipped Routebase client, so it is already a contract in practice. The test CLI on nuget.org drives the CI, spec, security and docs-as-code groups, and identity providers such as Okta and Microsoft Entra drive the SCIM group.",
+      "image": "https://routebase.dev/icon.png",
+      "humanURL": "https://docs.routebase.dev/api/routebase-public-api/",
+      "baseURL": "https://api.routebase.dev",
+      "version": "1.0.0",
+      "tags": [
+        "rest",
+        "openapi",
+        "api-keys",
+        "ci",
+        "scim"
+      ],
+      "properties": [
+        {
+          "type": "OpenAPI",
+          "mediaType": "application/json",
+          "url": "https://docs.routebase.dev/api/routebase-public-api/openapi.json"
+        },
+        {
+          "type": "APIReference",
+          "url": "https://docs.routebase.dev/api/routebase-public-api/"
+        },
+        {
+          "type": "Documentation",
+          "url": "https://docs.routebase.dev"
+        },
+        {
+          "type": "APIKeys",
+          "url": "https://docs.routebase.dev/api-keys/"
+        },
+        {
+          "type": "CLI",
+          "url": "https://docs.routebase.dev/cli-overview/"
+        },
+        {
+          "type": "Packages",
+          "url": "https://www.nuget.org/packages/Routebase.Cli"
+        },
+        {
+          "type": "ReleaseNotes",
+          "url": "https://docs.routebase.dev/release-notes/"
+        }
+      ],
+      "contact": [
+        {
+          "FN": "Routebase Support",
+          "email": "hello@routebase.dev",
+          "url": "https://routebase.dev/support/"
+        }
+      ]
+    },
+    {
+      "aid": "routebase.dev:mcp-server",
+      "name": "Routebase MCP Server",
+      "description": "Design, mock, test, document and monitor your APIs from one living OpenAPI spec. Agents design endpoints and schemas, run contract and security test suites, manage mock servers, publish documentation, and read monitoring results, all under the same role-based permissions as the human team. Billing and organization access stay read-only.",
+      "image": "https://routebase.dev/icon.png",
+      "humanURL": "https://routebase.dev/mcp-server/",
+      "baseURL": "https://mcp.routebase.dev",
+      "tags": [
+        "mcp",
+        "ai-agents",
+        "streamable-http",
+        "oauth",
+        "api-keys"
+      ],
+      "properties": [
+        {
+          "type": "MCPServer",
+          "url": "https://mcp.routebase.dev"
+        },
+        {
+          "type": "GettingStarted",
+          "url": "https://docs.routebase.dev/mcp-quickstart/"
+        },
+        {
+          "type": "Authentication",
+          "url": "https://docs.routebase.dev/mcp-authentication/"
+        },
+        {
+          "type": "Documentation",
+          "url": "https://docs.routebase.dev/mcp-cli-reference/"
+        },
+        {
+          "type": "GitHubRepo",
+          "url": "https://github.com/routebase-dev/routebase-mcp"
+        },
+        {
+          "type": "Packages",
+          "url": "https://www.npmjs.com/package/routebase-mcp"
+        },
+        {
+          "type": "Website",
+          "url": "https://routebase.dev/mcp-server/"
+        }
+      ],
+      "contact": [
+        {
+          "FN": "Routebase Support",
+          "email": "hello@routebase.dev",
+          "url": "https://routebase.dev/support/"
+        }
+      ]
+    }
+  ],
+  "common": [
+    { "type": "Website", "url": "https://routebase.dev" },
+    { "type": "Signup", "url": "https://app.routebase.dev" },
+    { "type": "Pricing", "url": "https://routebase.dev/pricing/" },
+    { "type": "Documentation", "url": "https://docs.routebase.dev" },
+    { "type": "Support", "url": "https://routebase.dev/support/" },
+    { "type": "ChangeLog", "url": "https://routebase.dev/changelog/" },
+    { "type": "Blog", "url": "https://routebase.dev/blog/" },
+    { "type": "BlogFeed", "url": "https://routebase.dev/blog/feed.xml" },
+    { "type": "LLMsTxt", "url": "https://routebase.dev/llms.txt" },
+    { "type": "TermsOfService", "url": "https://routebase.dev/terms/" },
+    { "type": "PrivacyPolicy", "url": "https://routebase.dev/privacy/" },
+    { "type": "GitHubOrg", "url": "https://github.com/routebase-dev" },
+    { "type": "X", "url": "https://x.com/routebasedev" },
+    { "type": "LinkedIn", "url": "https://www.linkedin.com/company/routebase" },
+    { "type": "YouTube", "url": "https://www.youtube.com/watch?v=9mvqaBG9tsY" }
+  ],
+  "maintainers": [
+    {
+      "FN": "Routebase GmbH",
+      "organizationName": "Routebase GmbH",
+      "email": "hello@routebase.dev",
+      "url": "https://routebase.dev",
+      "adr": "Berlin, Germany",
+      "X-twitter": "routebasedev",
+      "X-github": "routebase-dev"
+    }
+  ]
+}
