@@ -9,6 +9,23 @@ modified: '2026-09-13'
 specificationVersion: '0.21'
 tags:
 - API lifecycle management
+- API Design
+- OpenAPI
+- API Documentation
+- API Testing
+- API Mocking
+- API Monitoring
+- API Security
+- MCP
+- AI Agents
+- Developer Tools
+- CI/CD
+- REST
+- OAuth 2.1
+- SCIM
+- Streamable HTTP
+tags_raw:
+- API lifecycle management
 - API design
 - OpenAPI
 - API documentation
@@ -25,31 +42,106 @@ tags:
 - SCIM
 - Streamable HTTP
 apis:
-- name: Routebase API
-  description: The public, customer-committed part of the Routebase API — CLI-driven CI test runs, spec
-    versioning and promotion, OWASP security scanning with SARIF export, docs-as-code, and SCIM 2.0 user
-    provisioning. Authenticated with an X-API-Key (rb_live_) key scoped per permission and project; SCIM
-    uses a separate bearer token. Errors are RFC 9457 problem+json.
-  image: https://routebase.dev/icon.png
+- aid: routebase:routebase-api-specs-api
+  name: Routebase API Specs API
+  description: >-
+    Read specifications and their versions, export them as OpenAPI, and record which
+
+    version a deployment put into an environment.
   humanURL: https://docs.routebase.dev
   baseURL: https://api.routebase.dev
   tags:
-  - API lifecycle management
-  - API design
-  - OpenAPI
-  - API documentation
+  - API Specs
   properties:
   - type: OpenAPI
-    url: https://docs.routebase.dev/api/routebase-public-api/openapi.json
+    url: openapi/routebase-api-specs-api-openapi.yml
   - type: Documentation
     url: https://docs.routebase.dev
   - type: APIReference
     url: https://docs.routebase.dev/api/routebase-public-api/
   - type: LLMsTxt
     url: https://routebase.dev/llms.txt
-  - type: MCPServer
-    url: https://mcp.routebase.dev
+- aid: routebase:routebase-ci-test-runs-api
+  name: Routebase CI & Test Runs API
+  description: >-
+    Run test suites from a pipeline and collect the result. These endpoints back the
+
+    `routebase` CLI and the Routebase GitHub Action, and they are the ones a CI job
+
+    calls directly.
+  humanURL: https://docs.routebase.dev
+  baseURL: https://api.routebase.dev
+  tags:
+  - CI & Test Runs
+  properties:
+  - type: OpenAPI
+    url: openapi/routebase-ci-test-runs-api-openapi.yml
+  - type: Documentation
+    url: https://docs.routebase.dev
+  - type: APIReference
+    url: https://docs.routebase.dev/api/routebase-public-api/
+  - type: LLMsTxt
+    url: https://routebase.dev/llms.txt
+- aid: routebase:routebase-docs-as-code-api
+  name: Routebase Docs as Code API
+  description: >-
+    Keep documentation pages in your own repository and push them into Routebase from
+
+    a pipeline. These endpoints back `routebase docs push` and `routebase docs pull`.
+  humanURL: https://docs.routebase.dev
+  baseURL: https://api.routebase.dev
+  tags:
+  - Docs as Code
+  properties:
+  - type: OpenAPI
+    url: openapi/routebase-docs-as-code-api-openapi.yml
+  - type: Documentation
+    url: https://docs.routebase.dev
+  - type: APIReference
+    url: https://docs.routebase.dev/api/routebase-public-api/
+  - type: LLMsTxt
+    url: https://routebase.dev/llms.txt
+- aid: routebase:routebase-scim-api
+  name: Routebase SCIM API
+  description: >-
+    SCIM 2.0 user and group provisioning, as consumed by Okta, Microsoft Entra ID and
+
+    other identity providers. Available on plans that include SSO.
+  humanURL: https://docs.routebase.dev
+  baseURL: https://api.routebase.dev
+  tags:
+  - SCIM
+  properties:
+  - type: OpenAPI
+    url: openapi/routebase-scim-api-openapi.yml
+  - type: Documentation
+    url: https://docs.routebase.dev
+  - type: APIReference
+    url: https://docs.routebase.dev/api/routebase-public-api/
+  - type: LLMsTxt
+    url: https://routebase.dev/llms.txt
+- aid: routebase:routebase-security-api
+  name: Routebase Security API
+  description: >-
+    Start an OWASP scan, poll it to completion, and read the findings. The SARIF
+
+    export feeds GitHub code scanning and comparable tools.
+  humanURL: https://docs.routebase.dev
+  baseURL: https://api.routebase.dev
+  tags:
+  - Security
+  properties:
+  - type: OpenAPI
+    url: openapi/routebase-security-api-openapi.yml
+  - type: Documentation
+    url: https://docs.routebase.dev
+  - type: APIReference
+    url: https://docs.routebase.dev/api/routebase-public-api/
+  - type: LLMsTxt
+    url: https://routebase.dev/llms.txt
 common:
+- type: MCPServer
+  url: https://mcp.routebase.dev
 - type: ToolCrosswalk
   url: mcp/routebase-tool-crosswalk.yml
 - type: DeveloperPortal
