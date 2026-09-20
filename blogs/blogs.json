@@ -1,0 +1,14 @@
+{
+  "repo": "routebase",
+  "feeds": [
+    {
+      "source": "https://routebase.dev/support/",
+      "feed_url": "https://routebase.dev/blog/feed.xml",
+      "title": "",
+      "saved": 1,
+      "method": "discovered"
+    }
+  ],
+  "post_count": 1,
+  "fetched": "2026-09-19T20:17:39Z"
+}
