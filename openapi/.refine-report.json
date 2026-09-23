@@ -1,0 +1,28 @@
+{
+  "provider": "routebase",
+  "sources": [
+    "_original/routebase-public-api-openapi.json"
+  ],
+  "outputs": [
+    "routebase-api-specs-api-openapi.yml",
+    "routebase-ci-test-runs-api-openapi.yml",
+    "routebase-docs-as-code-api-openapi.yml",
+    "routebase-scim-api-openapi.yml",
+    "routebase-security-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [
+    "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
+    "routebase-public-api-openapi.json: upgraded openapi 3.1.1 -> OpenAPI 3.2.0",
+    "apis.yml register: already-registered"
+  ],
+  "skipped": [
+    "routebase-api-specs-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "routebase-ci-test-runs-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "routebase-docs-as-code-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "routebase-scim-api-openapi.yml: previously refined output, superseded by openapi/_original/",
+    "routebase-security-api-openapi.yml: previously refined output, superseded by openapi/_original/"
+  ]
+}

@@ -1,0 +1,647 @@
+openapi: 3.2.0
+info:
+  title: Routebase Public Security API
+  description: 'This reference covers the part of the Routebase API that is a commitment to
+
+    customers.'
+  version: 1.0.0
+servers:
+- url: https://api.routebase.dev
+tags:
+- name: Security
+  description: 'Start an OWASP scan, poll it to completion, and read the findings. The SARIF
+
+    export feeds GitHub code scanning and comparable tools.'
+paths:
+  /api/projects/{projectId}/security/findings:
+    get:
+      tags:
+      - Security
+      summary: List security findings
+      description: 'Returns the findings of a project across all scans, filtered as you need them.
+
+        A pipeline that only wants to know whether anything new broke should filter on
+
+        `status=open` and on the severities it cares about.'
+      operationId: getSecurityFindings
+      parameters:
+      - name: assignedToMe
+        in: query
+        description: Return only findings assigned to the calling user.
+        schema:
+          type: boolean
+          default: false
+      - $ref: '#/components/parameters/ProjectId'
+      - name: scannerId
+        in: query
+        description: Filter by the scanner that produced the finding.
+        schema:
+          type: string
+      - name: search
+        in: query
+        description: Free-text search across title and description.
+        schema:
+          type: string
+      - name: severity
+        in: query
+        description: Filter by severity.
+        schema:
+          $ref: '#/components/schemas/Severity'
+      - $ref: '#/components/parameters/Skip'
+      - name: sortBy
+        in: query
+        description: Sort order of the result.
+        schema:
+          type: string
+      - name: status
+        in: query
+        description: Filter by finding status.
+        schema:
+          $ref: '#/components/schemas/FindingStatus'
+      - name: take
+        in: query
+        description: Maximum number of items to return. Defaults to 50.
+        schema:
+          type: integer
+          format: int32
+          default: 50
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      responses:
+        '200':
+          description: A page of findings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityFindingList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: Security
+  /api/projects/{projectId}/security/findings/export/sarif:
+    get:
+      tags:
+      - Security
+      summary: Export findings as SARIF
+      description: 'Returns the findings of a project as a SARIF 2.1.0 document, which GitHub code
+
+        scanning and comparable tools ingest directly. Upload it from your pipeline and
+
+        the findings show up next to the code they concern. Without a `status` filter it
+
+        returns the open ones, which is what a build gate wants.'
+      operationId: exportSecurityFindingsSarif
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - name: status
+        in: query
+        description: Filter by finding status. Defaults to `open`.
+        schema:
+          $ref: '#/components/schemas/FindingStatus'
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      responses:
+        '200':
+          description: The SARIF document.
+          content:
+            application/sarif+json:
+              schema:
+                type: string
+                description: A SARIF 2.1.0 document.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: Security
+  /api/projects/{projectId}/security/scan-profiles/{profileId}/run:
+    post:
+      tags:
+      - Security
+      summary: Start a security scan
+      description: 'Queues a scan for the given profile and returns immediately with the tracking id,
+
+        because a scan runs in the background. Poll the scan run endpoint until its
+
+        status leaves `queued` and `running`.'
+      operationId: enqueueScanRun
+      parameters:
+      - name: profileId
+        in: path
+        description: Public id of the scan profile.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - $ref: '#/components/parameters/ProjectId'
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      responses:
+        '202':
+          description: The scan was queued.
+          headers:
+            Location:
+              description: URL of the scan run to poll.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanRun'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: Security
+  /api/projects/{projectId}/security/scan-runs/{runId}:
+    get:
+      tags:
+      - Security
+      summary: Get a scan run
+      description: 'Returns the state of a scan, including how many scanners have finished and which
+
+        one is running. Once `status` is `completed`, `securityScore` and
+
+        `openFindingsCount` are final and a pipeline can gate on them.'
+      operationId: getScanRunById
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - name: runId
+        in: path
+        description: Public id of the scan run.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      responses:
+        '200':
+          description: The scan run.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanRun'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: Security
+components:
+  schemas:
+    FindingStatus:
+      enum:
+      - open
+      - inProgress
+      - fixed
+      - falsePositive
+      - acceptedRisk
+      - duplicate
+      type: string
+      description: Where a finding stands in triage.
+    Severity:
+      enum:
+      - info
+      - low
+      - medium
+      - high
+      - critical
+      type: string
+      description: How serious a security finding is.
+    ScanRun:
+      required:
+      - id
+      - scanProfilePublicId
+      - status
+      - trigger
+      - startedAt
+      - totalChecks
+      - checksPassed
+      - checksFailed
+      - checksSkipped
+      - securityScore
+      - openFindingsCount
+      type: object
+      properties:
+        id:
+          type: string
+          description: Public id of the scan run.
+          format: uuid
+        scanProfilePublicId:
+          type: string
+          description: Profile the run was started from.
+          format: uuid
+        status:
+          description: Where the run stands. Poll until it leaves queued and running.
+          $ref: '#/components/schemas/ScanStatus'
+        trigger:
+          description: What started the run.
+          $ref: '#/components/schemas/ScanTrigger'
+        startedAt:
+          type: string
+          description: When the run was queued, in UTC.
+          format: date-time
+        completedAt:
+          type:
+          - 'null'
+          - string
+          description: When the run finished, in UTC. Null while it is still going.
+          format: date-time
+        totalChecks:
+          type: integer
+          description: How many individual checks the enabled scanners performed.
+          format: int32
+        checksPassed:
+          type: integer
+          description: Checks that found nothing.
+          format: int32
+        checksFailed:
+          type: integer
+          description: Checks that produced a finding.
+          format: int32
+        checksSkipped:
+          type: integer
+          description: Checks that could not run, for example because an endpoint needs authentication the profile does not carry.
+          format: int32
+        securityScore:
+          type: integer
+          description: Score between 0 and 100, final once the status is `completed`.
+          format: int32
+        errorMessage:
+          type:
+          - 'null'
+          - string
+          description: Set when the run failed.
+        openFindingsCount:
+          type: integer
+          description: Findings still open after this run.
+          format: int32
+        enabledScannerCount:
+          type: integer
+          description: Scanners the profile enables.
+          format: int32
+        scannersCompleted:
+          type: integer
+          description: Scanners finished so far.
+          format: int32
+        currentScannerId:
+          type:
+          - 'null'
+          - string
+          description: Scanner running right now.
+        cancelRequestedAt:
+          type:
+          - 'null'
+          - string
+          description: Set when a cancel was asked for but the run has not stopped yet.
+          format: date-time
+      description: A security scan, from queued through running to its final score and finding count.
+    ScanStatus:
+      enum:
+      - queued
+      - running
+      - completed
+      - failed
+      - cancelled
+      type: string
+      description: The lifecycle state of a scan run.
+    SecurityFindingList:
+      required:
+      - items
+      - total
+      - skip
+      - take
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecurityFinding'
+          description: The findings on this page.
+        total:
+          type: integer
+          description: Total number of matching findings, ignoring paging.
+          format: int32
+        skip:
+          type: integer
+          description: How many findings were skipped to reach this page.
+          format: int32
+        take:
+          type: integer
+          description: Page size that was applied.
+          format: int32
+      description: A page of security findings.
+    Problem:
+      required:
+      - status
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI identifying the problem type.
+        title:
+          type: string
+          description: A short summary of the problem type.
+        status:
+          type: integer
+          description: The HTTP status code.
+          format: int32
+        detail:
+          type: string
+          description: A human readable explanation.
+        instance:
+          type: string
+          description: The path that produced the error.
+        code:
+          type: string
+          description: 'The stable machine readable error code, for example `CONCURRENCY_CONFLICT`,
+
+            `PROJECT_LOCKED`, `API_KEY_SCOPE_DENIED` or `NOT_A_MEMBER`.
+
+            '
+      description: 'The error shape of the API, which follows RFC 9457. Branch on `code`, because
+
+        `detail` is written for people and may be reworded.
+
+        '
+    Confidence:
+      enum:
+      - low
+      - medium
+      - high
+      type: string
+      description: How certain the scanner is that a finding is real.
+    ScanTrigger:
+      enum:
+      - manual
+      - scheduled
+      - api
+      - ciCd
+      type: string
+      description: What started a scan run.
+    SecurityFinding:
+      required:
+      - id
+      - scanRunPublicId
+      - firstSeenScanRunPublicId
+      - scannerId
+      - owaspCategory
+      - severity
+      - confidence
+      - status
+      - title
+      - description
+      - guidanceId
+      - createdAt
+      type: object
+      properties:
+        id:
+          type: string
+          description: Public id of the finding.
+          format: uuid
+        scanRunPublicId:
+          type: string
+          description: Run that reported it most recently.
+          format: uuid
+        firstSeenScanRunPublicId:
+          type: string
+          description: 'Run that reported it first. When this differs from `scanRunPublicId`, the
+
+            finding has survived at least one further scan.
+
+            '
+          format: uuid
+        scannerId:
+          type: string
+          description: Scanner that produced the finding.
+        owaspCategory:
+          type: string
+          description: OWASP API Security category, for example `API1`.
+        severity:
+          description: How serious the finding is.
+          $ref: '#/components/schemas/Severity'
+        confidence:
+          description: How certain the scanner is that this is real rather than a false positive.
+          $ref: '#/components/schemas/Confidence'
+        status:
+          description: Where the finding stands in triage.
+          $ref: '#/components/schemas/FindingStatus'
+        title:
+          type: string
+          description: One-line summary of the problem.
+        description:
+          type: string
+          description: What the scanner found and why it matters.
+        path:
+          type:
+          - 'null'
+          - string
+          description: Path of the affected endpoint.
+        method:
+          type:
+          - 'null'
+          - string
+          description: HTTP method of the affected endpoint.
+        reproductionCurl:
+          type:
+          - 'null'
+          - string
+          description: A curl command that reproduces the finding.
+        guidanceId:
+          type: string
+          description: Id of the remediation guidance for this finding.
+        assignedToUserId:
+          type:
+          - 'null'
+          - string
+          description: Public id of the user who owns the finding. Null when nobody was assigned.
+          format: uuid
+        assignedToUserName:
+          type:
+          - 'null'
+          - string
+          description: Display name of that user.
+        resolutionNotes:
+          type:
+          - 'null'
+          - string
+          description: What was done about the finding, written when it was closed.
+        resolvedAt:
+          type:
+          - 'null'
+          - string
+          description: When the finding was closed, in UTC. Null while it is open.
+          format: date-time
+        resolvedByUserId:
+          type:
+          - 'null'
+          - string
+          description: Public id of the user who closed the finding.
+          format: uuid
+        createdAt:
+          type: string
+          description: When the finding was first reported, in UTC.
+          format: date-time
+        modifiedAt:
+          type:
+          - 'null'
+          - string
+          description: When the finding was last touched, in UTC.
+          format: date-time
+      description: One security finding, with its OWASP category, its triage state and a curl command that reproduces it.
+  responses:
+    Unauthorized:
+      description: 'The API key is missing, invalid, expired or revoked. A US organization calling
+
+        without `X-RB-Region: us` also lands here, because the request reached the wrong
+
+        region.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: 'The resource does not exist, or it belongs to another organization or project.
+
+        Both cases answer the same way on purpose, so the API cannot be used to probe
+
+        for foreign identifiers.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: 'The key is valid but lacks the permission or the project scope for this call.
+
+        A scoped key is also refused on organization level operations by design.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  parameters:
+    ProjectId:
+      name: ProjectId
+      in: path
+      description: Public id of the project.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Skip:
+      name: Skip
+      in: query
+      description: Number of items to skip. Defaults to 0.
+      schema:
+        type: integer
+        format: int32
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      description: 'An organization API key, created under Settings then API Keys. Keys start with
+
+        `rb_live_` and carry their own permission scopes, so a key only reaches what it
+
+        was granted.'
+      name: X-API-Key
+      in: header
+    ScimBearerAuth:
+      type: http
+      description: 'The SCIM token of the organization, issued when SCIM provisioning is enabled.
+
+        It is separate from an API key and only unlocks the SCIM endpoints.'
+      scheme: bearer
+x-routebase-folders:
+- name: API Specs
+  children: []
+- name: CI & Test Runs
+  children: []
+- name: Docs as Code
+  children: []
+- name: SCIM
+  children: []
+- name: Security
+  children: []

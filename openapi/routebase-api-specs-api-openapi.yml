@@ -1,0 +1,663 @@
+openapi: 3.2.0
+info:
+  title: Routebase Public API Specs API
+  description: 'This reference covers the part of the Routebase API that is a commitment to
+
+    customers.'
+  version: 1.0.0
+servers:
+- url: https://api.routebase.dev
+tags:
+- name: API Specs
+  description: 'Read specifications and their versions, export them as OpenAPI, and record which
+
+    version a deployment put into an environment.'
+paths:
+  /api/projects/{projectId}/specs:
+    get:
+      tags:
+      - API Specs
+      summary: List the specifications of a project
+      description: 'Returns the specifications of a project together with the number of their
+
+        latest published version, so a pipeline can resolve a spec by name and see at a
+
+        glance what is live.'
+      operationId: getApiSpecs
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/Skip'
+      - $ref: '#/components/parameters/Take'
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      responses:
+        '200':
+          description: A page of specifications.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiSpecList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: API Specs
+  /api/projects/{projectId}/specs/{specId}/export:
+    get:
+      tags:
+      - API Specs
+      summary: Export the current state of a specification
+      description: 'Returns the working state of a specification as OpenAPI, which is the draft as
+
+        it stands in the designer right now. To export something stable, export a
+
+        published version instead.'
+      operationId: exportApiSpec
+      parameters:
+      - $ref: '#/components/parameters/SpecFormat'
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SpecId'
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      responses:
+        '200':
+          description: The specification document.
+          content:
+            application/json:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: API Specs
+  /api/projects/{projectId}/specs/{specId}/versions:
+    get:
+      tags:
+      - API Specs
+      summary: List the versions of a specification
+      description: 'Returns the versions of a specification with their status and publish target.
+
+        Only a version whose status is `published` is frozen, so anything else can still
+
+        change underneath you.'
+      operationId: getSpecVersions
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/Skip'
+      - $ref: '#/components/parameters/SpecId'
+      - $ref: '#/components/parameters/Take'
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      responses:
+        '200':
+          description: A page of versions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecVersionList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: API Specs
+  /api/projects/{projectId}/specs/{specId}/versions/{versionId}/export:
+    get:
+      tags:
+      - API Specs
+      summary: Export a published version
+      description: 'Returns a published version as a downloadable OpenAPI document. A published
+
+        version is frozen, so the same call returns the same bytes forever, which makes
+
+        it safe to generate clients from in a build.'
+      operationId: exportSpecVersion
+      parameters:
+      - $ref: '#/components/parameters/SpecFormat'
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SpecId'
+      - $ref: '#/components/parameters/VersionId'
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      responses:
+        '200':
+          description: The specification document as a file.
+          content:
+            application/json:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: API Specs
+  /api/projects/{projectId}/specs/{specId}/versions/{versionId}/promote:
+    post:
+      tags:
+      - API Specs
+      summary: Record that a version went into an environment
+      description: 'Tells Routebase which version an environment now serves. The intended order is
+
+        that your pipeline deploys first and then makes this call, so the pin reflects
+
+        what is actually running rather than what someone intended.
+
+
+        A call authenticated with an API key is recorded with source `cli`, which is how
+
+        a pipeline assertion is told apart from someone clicking in the UI. If the target
+
+        environment freezes versions, the promoted version becomes immutable here.'
+      operationId: promoteSpecVersion
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SpecId'
+      - $ref: '#/components/parameters/VersionId'
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromoteVersionRequest'
+        required: true
+      responses:
+        '200':
+          description: The promotion was recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PromotionResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: 'The promotion is blocked. The most common reason is an unacknowledged impact
+
+            on dependent services, which you clear by sending `impactAcknowledged`.
+
+            '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: API Specs
+components:
+  schemas:
+    OpenApiVersion:
+      enum:
+      - v3_0
+      - v3_1
+      type: string
+      description: The OpenAPI dialect of a specification.
+    SpecVersion:
+      required:
+      - id
+      - versionNumber
+      - status
+      - createdAt
+      type: object
+      properties:
+        id:
+          type: string
+          description: Public id of the version.
+          format: uuid
+        versionNumber:
+          type: string
+          description: The version label, for example 1.2.0. It follows the numbering scheme of the organization.
+        status:
+          description: Where the version stands in its lifecycle.
+          $ref: '#/components/schemas/VersionStatus'
+        createdAt:
+          type: string
+          description: When the version was created, in UTC.
+          format: date-time
+        publishedAt:
+          type:
+          - 'null'
+          - string
+          description: When the version was published, in UTC. Null while it is still a draft or in review.
+          format: date-time
+        publishTarget:
+          oneOf:
+          - $ref: '#/components/schemas/PublishTarget'
+          - type: 'null'
+          description: Who the version is visible to. Null until it is published.
+        rowVersion:
+          type:
+          - 'null'
+          - string
+          description: Base64 concurrency token.
+      description: One version of a specification. Only a published version is frozen.
+    ApiSpec:
+      required:
+      - id
+      - name
+      - version
+      - openApiVersion
+      - createdAt
+      type: object
+      properties:
+        id:
+          type: string
+          description: Public id of the specification.
+          format: uuid
+        name:
+          type: string
+          description: Display name of the specification, which is what the CLI resolves when you pass a name.
+        version:
+          type: string
+          description: The version string carried in the document itself.
+        openApiVersion:
+          description: Which OpenAPI dialect the document is written in.
+          $ref: '#/components/schemas/OpenApiVersion'
+        description:
+          type:
+          - 'null'
+          - string
+          description: Free-text note on the specification. Null when none was set.
+        basePath:
+          type:
+          - 'null'
+          - string
+          description: Path prefix shared by every endpoint, when the specification defines one.
+        createdAt:
+          type: string
+          description: When the specification was created, in UTC.
+          format: date-time
+        modifiedAt:
+          type:
+          - 'null'
+          - string
+          description: When the specification was last changed, in UTC. Null when it was never edited.
+          format: date-time
+        rowVersion:
+          type:
+          - 'null'
+          - string
+          description: Base64 concurrency token. Send it back on an update to catch a competing edit.
+        latestPublishedVersion:
+          type:
+          - 'null'
+          - string
+          description: Number of the most recent published version, or null when none is published yet.
+      description: An API specification in a project, with the number of its latest published version.
+    Problem:
+      required:
+      - status
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI identifying the problem type.
+        title:
+          type: string
+          description: A short summary of the problem type.
+        status:
+          type: integer
+          description: The HTTP status code.
+          format: int32
+        detail:
+          type: string
+          description: A human readable explanation.
+        instance:
+          type: string
+          description: The path that produced the error.
+        code:
+          type: string
+          description: 'The stable machine readable error code, for example `CONCURRENCY_CONFLICT`,
+
+            `PROJECT_LOCKED`, `API_KEY_SCOPE_DENIED` or `NOT_A_MEMBER`.
+
+            '
+      description: 'The error shape of the API, which follows RFC 9457. Branch on `code`, because
+
+        `detail` is written for people and may be reworded.
+
+        '
+    PublishTarget:
+      enum:
+      - internal
+      - public
+      - exportOnly
+      type: string
+      description: Who a published version is visible to.
+    SpecVersionList:
+      required:
+      - items
+      - totalCount
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpecVersion'
+          description: The versions on this page.
+        totalCount:
+          type: integer
+          description: Total number of versions of this specification, ignoring paging.
+          format: int32
+      description: A page of specification versions.
+    ApiSpecList:
+      required:
+      - items
+      - totalCount
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiSpec'
+          description: The specifications on this page.
+        totalCount:
+          type: integer
+          description: Total number of specifications in the project, ignoring paging.
+          format: int32
+      description: A page of API specifications.
+    PinSource:
+      enum:
+      - manual
+      - cli
+      - gatewayDeployment
+      type: string
+      description: 'Where a version pin came from. A call authenticated with an API key is recorded
+
+        as `cli`, which marks it as a pipeline assertion rather than a manual entry.
+
+        '
+    PromoteVersionRequest:
+      required:
+      - environmentId
+      type: object
+      properties:
+        environmentId:
+          type: string
+          description: Environment the version was deployed to.
+          format: uuid
+        publishTarget:
+          oneOf:
+          - $ref: '#/components/schemas/PublishTarget'
+          - type: 'null'
+          description: Who the version becomes visible to. Defaults to `internal`.
+        impactAcknowledged:
+          type:
+          - 'null'
+          - boolean
+          description: 'Confirms you have seen the effect on dependent services. Send true to clear
+
+            a promotion that was refused with 409 for that reason.
+
+            '
+      description: Which environment a version was deployed to, and what that should make it visible to.
+    PromotionResult:
+      required:
+      - promotionId
+      - environmentId
+      - environmentName
+      - versionId
+      - versionNumber
+      - frozeVersion
+      - source
+      - isRollback
+      type: object
+      properties:
+        promotionId:
+          type: string
+          description: Public id of this promotion record, which the audit trail refers to.
+          format: uuid
+        environmentId:
+          type: string
+          description: Public id of the environment the version went into.
+          format: uuid
+        environmentName:
+          type: string
+          description: Display name of that environment.
+        versionId:
+          type: string
+          description: Public id of the promoted version.
+          format: uuid
+        versionNumber:
+          type: string
+          description: Version label of the promoted version.
+        frozeVersion:
+          type: boolean
+          description: Whether this promotion made the version immutable.
+        previousVersionNumber:
+          type:
+          - 'null'
+          - string
+          description: What the environment pinned before, or null if this is the first promotion.
+        source:
+          description: How the pin was set. A call with an API key is recorded as cli.
+          $ref: '#/components/schemas/PinSource'
+        isRollback:
+          type: boolean
+          description: Whether the pin moved back to a version the environment served earlier.
+      description: 'What the promotion changed: the new pin, whether it froze the version, and where the pin came from.'
+    VersionStatus:
+      enum:
+      - draft
+      - review
+      - published
+      - deprecated
+      type: string
+      description: 'The lifecycle state of a specification version. Only `published` is frozen and
+
+        therefore safe to generate clients from.
+
+        '
+  parameters:
+    VersionId:
+      name: VersionId
+      in: path
+      description: Public id of the specification version.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SpecFormat:
+      name: SpecFormat
+      in: query
+      description: Output format. Defaults to `yaml`.
+      schema:
+        type: string
+    SpecId:
+      name: SpecId
+      in: path
+      description: Public id of the API specification.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProjectId:
+      name: ProjectId
+      in: path
+      description: Public id of the project.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Skip:
+      name: Skip
+      in: query
+      description: Number of items to skip. Defaults to 0.
+      schema:
+        type: integer
+        format: int32
+    Take:
+      name: Take
+      in: query
+      description: Maximum number of items to return.
+      schema:
+        type: integer
+        format: int32
+  responses:
+    Unauthorized:
+      description: 'The API key is missing, invalid, expired or revoked. A US organization calling
+
+        without `X-RB-Region: us` also lands here, because the request reached the wrong
+
+        region.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    BadRequest:
+      description: The request was malformed or failed validation.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: 'The key is valid but lacks the permission or the project scope for this call.
+
+        A scoped key is also refused on organization level operations by design.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: 'The resource does not exist, or it belongs to another organization or project.
+
+        Both cases answer the same way on purpose, so the API cannot be used to probe
+
+        for foreign identifiers.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      description: 'An organization API key, created under Settings then API Keys. Keys start with
+
+        `rb_live_` and carry their own permission scopes, so a key only reaches what it
+
+        was granted.'
+      name: X-API-Key
+      in: header
+    ScimBearerAuth:
+      type: http
+      description: 'The SCIM token of the organization, issued when SCIM provisioning is enabled.
+
+        It is separate from an API key and only unlocks the SCIM endpoints.'
+      scheme: bearer
+x-routebase-folders:
+- name: API Specs
+  children: []
+- name: CI & Test Runs
+  children: []
+- name: Docs as Code
+  children: []
+- name: SCIM
+  children: []
+- name: Security
+  children: []

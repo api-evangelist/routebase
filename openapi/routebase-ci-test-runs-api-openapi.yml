@@ -1,0 +1,1544 @@
+openapi: 3.2.0
+info:
+  title: Routebase Public CI & Test Runs API
+  description: 'This reference covers the part of the Routebase API that is a commitment to
+
+    customers.'
+  version: 1.0.0
+servers:
+- url: https://api.routebase.dev
+tags:
+- name: CI & Test Runs
+  description: 'Run test suites from a pipeline and collect the result. These endpoints back the
+
+    `routebase` CLI and the Routebase GitHub Action, and they are the ones a CI job
+
+    calls directly.'
+paths:
+  /api/cli/environments:
+    get:
+      tags:
+      - CI & Test Runs
+      summary: List the environments of a project
+      description: 'Returns the environments of a project, so a pipeline can pick the one whose
+
+        variables the run should use. An environment marked `isReadOnly` rejects every
+
+        write request sent to it, and the test cases concerned are reported as blocked
+
+        rather than failed.'
+      operationId: cliListEnvironments
+      parameters:
+      - $ref: '#/components/parameters/ProjectIdQuery'
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      responses:
+        '200':
+          description: The environments of the project.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Environment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: CI & Test Runs
+  /api/cli/run:
+    post:
+      tags:
+      - CI & Test Runs
+      summary: Run a test suite and wait for the result
+      description: 'Executes a test suite and returns the outcome in one call, which is what a
+
+        pipeline step needs. The response tells you whether everything passed, so a
+
+        CI job can fail on `allPassed` alone. Pass a `reportFormat` to get the report
+
+        inline instead of downloading it separately.
+
+
+        The call blocks until the run finishes. For a long suite, send `progressRunId`
+
+        and poll the status endpoint instead of holding the connection open.'
+      operationId: cliRunTestSuite
+      parameters:
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CliRunRequest'
+        required: true
+      responses:
+        '200':
+          description: The run completed. Check `allPassed` for the verdict.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CliRunResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: CI & Test Runs
+  /api/cli/runs/{id}/report:
+    get:
+      tags:
+      - CI & Test Runs
+      summary: Download the report of a finished run
+      description: 'Returns the run report as a file. JUnit XML is the default because GitHub
+
+        Actions, Azure Pipelines and Jenkins all read it natively.
+
+
+        The run has to be finished. Asking for the report of a pending or running test
+
+        run is answered with 409, so poll the status endpoint first.'
+      operationId: cliDownloadReport
+      parameters:
+      - name: format
+        in: query
+        description: Report format. Defaults to `junit`.
+        schema:
+          enum:
+          - junit
+          - json
+          - html
+          type: string
+          default: junit
+      - name: id
+        in: path
+        description: Public id of the test run.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      responses:
+        '200':
+          description: The report file.
+          content:
+            application/json:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: The run is still pending or running, so there is no report yet.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: CI & Test Runs
+  /api/cli/runs/{id}/status:
+    get:
+      tags:
+      - CI & Test Runs
+      summary: Get the progress of a test run
+      description: 'Returns how far a run has come, which lets a pipeline show progress instead of
+
+        waiting silently. While the run is going, `currentDurationMs` counts up and
+
+        `completedAt` stays null.'
+      operationId: cliGetRunStatus
+      parameters:
+      - name: id
+        in: path
+        description: Public id of the test run.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      responses:
+        '200':
+          description: The current status of the run.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CliRunStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: CI & Test Runs
+  /api/cli/suites:
+    get:
+      tags:
+      - CI & Test Runs
+      summary: List the test suites of a project
+      description: Returns the test suites of a project so a pipeline can resolve a suite by name.
+      operationId: cliListSuites
+      parameters:
+      - $ref: '#/components/parameters/ProjectIdQuery'
+      - $ref: '#/components/parameters/Skip'
+      - $ref: '#/components/parameters/Take'
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      responses:
+        '200':
+          description: A page of test suites.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestSuiteList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: CI & Test Runs
+  /api/projects/{projectId}/test-suites:
+    get:
+      tags:
+      - CI & Test Runs
+      summary: List the test suites of a project
+      description: 'The project scoped equivalent of `/api/cli/suites`, which returns the same page
+
+        of suites. Use whichever fits the path style of your client.'
+      operationId: getTestSuites
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/Skip'
+      - $ref: '#/components/parameters/Take'
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      responses:
+        '200':
+          description: A page of test suites.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestSuiteList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: CI & Test Runs
+  /api/projects/{projectId}/test-suites/{suiteId}/execute:
+    post:
+      tags:
+      - CI & Test Runs
+      summary: Execute a test suite
+      description: 'Runs every test case in a suite in order, carrying extracted variables from one
+
+        case into the next. This is the full result shape, so it also carries the
+
+        per-case detail, the seed results and the performance metrics that
+
+        `/api/cli/run` leaves out.
+
+
+        Set `persistResults` to false for a dry run that leaves no test run behind.'
+      operationId: executeTestSuite
+      parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - name: suiteId
+        in: path
+        description: Public id of the test suite.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: X-RB-Region
+        in: header
+        description: Region of your organization. US organizations must send `us`; EU organizations leave the header out. Without it a US call is routed to the EU region and answered with 401.
+        schema:
+          type: string
+          example: us
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteTestSuiteRequest'
+      responses:
+        '200':
+          description: The run completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestSuiteExecutionResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          description: The rate limit was exceeded. The `Retry-After` header gives the seconds to wait.
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              required: true
+              schema:
+                type: integer
+                format: int32
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+      security:
+      - ApiKeyAuth: []
+      x-routebase-folder-path: CI & Test Runs
+components:
+  schemas:
+    Problem:
+      required:
+      - status
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI identifying the problem type.
+        title:
+          type: string
+          description: A short summary of the problem type.
+        status:
+          type: integer
+          description: The HTTP status code.
+          format: int32
+        detail:
+          type: string
+          description: A human readable explanation.
+        instance:
+          type: string
+          description: The path that produced the error.
+        code:
+          type: string
+          description: 'The stable machine readable error code, for example `CONCURRENCY_CONFLICT`,
+
+            `PROJECT_LOCKED`, `API_KEY_SCOPE_DENIED` or `NOT_A_MEMBER`.
+
+            '
+      description: 'The error shape of the API, which follows RFC 9457. Branch on `code`, because
+
+        `detail` is written for people and may be reworded.
+
+        '
+    SnapshotRestoreResult:
+      required:
+      - success
+      - phase
+      - elapsedMilliseconds
+      - cleanupResults
+      - warnings
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the environment was restored to the snapshot state.
+        phase:
+          type: string
+          description: Which phase the restore reached.
+        elapsedMilliseconds:
+          type: integer
+          description: Duration of the whole restore.
+          format: int64
+        cleanupResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/SnapshotCleanupStepResult'
+          description: One entry per cleanup call, in execution order.
+        reSeedResult:
+          oneOf:
+          - $ref: '#/components/schemas/SeedExecutionResult'
+          - type: 'null'
+          description: Result of the seed that repopulated the environment after cleanup. Null when none ran.
+        warnings:
+          type: array
+          items:
+            type: string
+          description: Non-fatal problems, such as a cleanup call that found nothing to delete.
+        error:
+          type:
+          - 'null'
+          - string
+          description: Why the restore failed. Null on success.
+      description: The outcome of restoring an environment to a known state before a run.
+    ExecuteTestSuiteRequest:
+      type: object
+      properties:
+        environmentId:
+          type:
+          - 'null'
+          - string
+          description: Environment whose variables the run substitutes.
+          format: uuid
+        persistResults:
+          type:
+          - 'null'
+          - boolean
+          description: Whether to store the run and its results. Defaults to true.
+        iterations:
+          type:
+          - 'null'
+          - integer
+          description: How often to run the suite, between 1 and 10000. Defaults to 1.
+          format: int32
+        delayMs:
+          type:
+          - 'null'
+          - integer
+          description: Pause between iterations in milliseconds, up to 60000. Defaults to 0.
+          format: int32
+        onError:
+          oneOf:
+          - $ref: '#/components/schemas/OnErrorBehavior'
+          - type: 'null'
+          description: Error handling behaviour. Defaults to `ignore`.
+        dataSetId:
+          type:
+          - 'null'
+          - string
+          description: Data set for data-driven execution, which runs every case once per row.
+          format: uuid
+        threads:
+          type:
+          - 'null'
+          - integer
+          description: Parallel threads for performance mode, between 1 and 50. Defaults to 1.
+          format: int32
+        progressRunId:
+          type:
+          - 'null'
+          - string
+          description: 'Client-generated id for live progress. Join the test-runner hub group for
+
+            this id before sending the request, then follow the run case by case.
+
+            '
+          format: uuid
+        caseIds:
+          type:
+          - 'null'
+          - array
+          items:
+            type: string
+            format: uuid
+          description: Run only these test cases. Null or empty runs the whole suite.
+      description: Options for a suite run. Every field has a default, so the body may be omitted entirely.
+    CliRunStatus:
+      required:
+      - id
+      - status
+      - completedCases
+      - totalCases
+      - passedCases
+      - failedCases
+      - currentDurationMs
+      - startedAt
+      type: object
+      properties:
+        id:
+          type: string
+          description: Public id of the test run.
+          format: uuid
+        status:
+          enum:
+          - pending
+          - running
+          - passed
+          - failed
+          - error
+          - cancelled
+          type: string
+          description: Current state of the run.
+        completedCases:
+          type: integer
+          description: Test cases finished so far.
+          format: int32
+        totalCases:
+          type: integer
+          description: Test cases in the run.
+          format: int32
+        passedCases:
+          type: integer
+          description: Test cases that passed.
+          format: int32
+        failedCases:
+          type: integer
+          description: Test cases that failed.
+          format: int32
+        currentDurationMs:
+          type: integer
+          description: Elapsed time, which counts up while the run is going and is final once it ends.
+          format: int64
+        startedAt:
+          type: string
+          description: When the run started.
+          format: date-time
+        completedAt:
+          type:
+          - 'null'
+          - string
+          description: When the run ended, or null while it is still going.
+          format: date-time
+      description: How far a running suite has come, for progress output while a run is in flight.
+    CliRunResponse:
+      required:
+      - allPassed
+      - totalElapsedMs
+      - totalTests
+      - passedTests
+      - failedTests
+      - iterations
+      type: object
+      properties:
+        allPassed:
+          type: boolean
+          description: Whether every test case passed across every iteration. Gate your build on this.
+        totalElapsedMs:
+          type: integer
+          description: Total run time in milliseconds.
+          format: int64
+        totalTests:
+          type: integer
+          description: Number of test case executions.
+          format: int32
+        passedTests:
+          type: integer
+          description: Number that passed.
+          format: int32
+        failedTests:
+          type: integer
+          description: Number that failed or errored.
+          format: int32
+        testRunId:
+          type:
+          - 'null'
+          - string
+          description: Public id of the stored test run, which the report endpoints take.
+          format: uuid
+        iterations:
+          type: integer
+          description: Number of iterations executed.
+          format: int32
+        iterationResults:
+          type:
+          - 'null'
+          - array
+          items:
+            $ref: '#/components/schemas/IterationResult'
+          description: Per-iteration breakdown, present only when more than one iteration ran.
+        report:
+          type:
+          - 'null'
+          - string
+          description: The report content, present only when `reportFormat` was requested.
+        reportFormat:
+          type:
+          - 'null'
+          - string
+          description: Format of the inline report.
+        reportContentType:
+          type:
+          - 'null'
+          - string
+          description: MIME type of the inline report.
+      description: The verdict of a suite run, shaped for a CI step. Branch your build on allPassed.
+    SeedStepResult:
+      type: object
+      properties:
+        order:
+          type: integer
+          description: Position of the step in the sequence, starting at 1.
+          format: int32
+        type:
+          type: string
+          description: What the step does.
+        success:
+          type: boolean
+          description: Whether this step completed.
+        elapsedMilliseconds:
+          type: integer
+          description: Duration of this step.
+          format: int64
+        statusCode:
+          type:
+          - 'null'
+          - integer
+          description: HTTP status the step received. Null for steps that send no request.
+          format: int32
+        error:
+          type:
+          - 'null'
+          - string
+          description: Why the step failed. Null on success.
+        resolvedUrl:
+          type:
+          - 'null'
+          - string
+          description: The URL after variable substitution.
+        resolvedMethod:
+          type:
+          - 'null'
+          - string
+          description: The HTTP method the step used.
+        iterationIndex:
+          type:
+          - 'null'
+          - integer
+          description: Which repetition this is, for a step configured to loop.
+          format: int32
+        capturedVariables:
+          type:
+          - 'null'
+          - object
+          additionalProperties:
+            type: string
+          description: Variables this step captured for the steps and cases that follow.
+      description: One step inside a seed sequence.
+    PerformanceMetrics:
+      type: object
+      properties:
+        averageResponseTimeMs:
+          type: number
+          description: Mean response time across every request in the run.
+          format: double
+        minResponseTimeMs:
+          type: integer
+          description: Fastest single response in the run.
+          format: int64
+        maxResponseTimeMs:
+          type: integer
+          description: Slowest single response in the run, which is the number a timeout budget has to beat.
+          format: int64
+        medianResponseTimeMs:
+          type: integer
+          description: Median response time, less distorted by outliers than the mean.
+          format: int64
+        p95ResponseTimeMs:
+          type: integer
+          description: 95th percentile, so one request in twenty was slower than this.
+          format: int64
+        p99ResponseTimeMs:
+          type: integer
+          description: 99th percentile, the usual number behind a latency commitment.
+          format: int64
+        throughputPerSecond:
+          type: number
+          description: Completed requests per second across the run.
+          format: double
+        errorRatePercent:
+          type: number
+          description: Share of requests that failed, from 0 to 100.
+          format: double
+        totalRequests:
+          type: integer
+          description: Requests sent across all threads and iterations.
+          format: int32
+        successfulRequests:
+          type: integer
+          description: Requests that completed and passed their assertions.
+          format: int32
+        failedRequests:
+          type: integer
+          description: Requests that errored or failed an assertion.
+          format: int32
+        perTestCase:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCasePerformance'
+          description: The same figures broken down per test case, which is how you find the one slow call.
+      description: Latency distribution and throughput of a run. Present once a run used parallel threads or several iterations.
+    EnvironmentType:
+      enum:
+      - development
+      - staging
+      - production
+      - custom
+      type: string
+      description: The stage an environment stands for.
+    CliRunRequest:
+      required:
+      - projectId
+      - suiteId
+      type: object
+      properties:
+        projectId:
+          type: string
+          description: Public id of the project.
+          format: uuid
+        suiteId:
+          type: string
+          description: Public id of the test suite to run.
+          format: uuid
+        environmentId:
+          type:
+          - 'null'
+          - string
+          description: Environment whose variables the run substitutes.
+          format: uuid
+        iterations:
+          type:
+          - 'null'
+          - integer
+          description: How often to run the suite, between 1 and 10000. Defaults to 1.
+          format: int32
+        delayMs:
+          type:
+          - 'null'
+          - integer
+          description: Pause between iterations in milliseconds, up to 60000. Defaults to 0.
+          format: int32
+        onError:
+          oneOf:
+          - $ref: '#/components/schemas/OnErrorBehavior'
+          - type: 'null'
+          description: Error handling behaviour. Defaults to `ignore`.
+        reportFormat:
+          enum:
+          - json
+          - html
+          - junit
+          type:
+          - 'null'
+          - string
+          description: Include the report inline in the response in this format. Omit it to get no report.
+        threads:
+          type:
+          - 'null'
+          - integer
+          description: 'Parallel threads for performance mode, between 1 and 50. Defaults to 1,
+
+            which runs the cases in order and carries variables between them.
+
+            '
+          format: int32
+        authOverrideJson:
+          type:
+          - 'null'
+          - string
+          description: 'Authentication configuration that replaces the one stored on the suite,
+
+            which lets a pipeline inject its own credentials.
+
+            '
+      description: Everything a pipeline needs to start one suite run.
+    Environment:
+      required:
+      - id
+      - name
+      - type
+      - createdAt
+      - variableCount
+      type: object
+      properties:
+        id:
+          type: string
+          description: Public id of the environment.
+          format: uuid
+        name:
+          type: string
+          description: Display name of the environment, such as Staging.
+        type:
+          description: Which stage the environment stands for.
+          $ref: '#/components/schemas/EnvironmentType'
+        baseUrl:
+          type:
+          - 'null'
+          - string
+          description: Base URL requests in this environment are sent to.
+        createdAt:
+          type: string
+          description: When the environment was created, in UTC.
+          format: date-time
+        variableCount:
+          type: integer
+          description: How many variables the environment defines for substitution.
+          format: int32
+        freezesVersion:
+          type: boolean
+          description: A promotion into this environment makes the promoted version immutable.
+        isDocsSource:
+          type: boolean
+          description: What this environment pins is what the public documentation shows.
+        isMockSource:
+          type: boolean
+          description: What this environment pins is what the mock server serves.
+        isReadOnly:
+          type: boolean
+          description: 'Only GET, HEAD and OPTIONS may be sent here. Test cases that write are
+
+            reported as blocked rather than run.
+
+            '
+      description: A target environment with its base URL, its variables and the roles it plays for docs, mocks and version pinning.
+    SnapshotCleanupStepResult:
+      type: object
+      properties:
+        order:
+          type: integer
+          description: Position of the cleanup call in the sequence, starting at 1.
+          format: int32
+        method:
+          type: string
+          description: HTTP method of the cleanup call, usually DELETE.
+        url:
+          type: string
+          description: The URL the cleanup call went to.
+        success:
+          type: boolean
+          description: Whether the cleanup call succeeded.
+        statusCode:
+          type:
+          - 'null'
+          - integer
+          description: HTTP status the cleanup call received.
+          format: int32
+        error:
+          type:
+          - 'null'
+          - string
+          description: Why the cleanup call failed. Null on success.
+        elapsedMilliseconds:
+          type: integer
+          description: Duration of the cleanup call.
+          format: int64
+      description: One cleanup call inside a snapshot restore.
+    AssertionResult:
+      required:
+      - assertionId
+      - type
+      - operator
+      - passed
+      type: object
+      properties:
+        assertionId:
+          type: string
+          description: Public id of the assertion, stable across runs.
+          format: uuid
+        type:
+          type: string
+          description: What the assertion checks, for example the status code or a JSON path.
+        operator:
+          type: string
+          description: How expected and actual are compared.
+        target:
+          type:
+          - 'null'
+          - string
+          description: What the assertion points at, for example a JSON path.
+        expectedValue:
+          type:
+          - 'null'
+          - string
+          description: The value the assertion demanded, rendered as text.
+        actualValue:
+          type:
+          - 'null'
+          - string
+          description: The value the response actually carried, rendered as text.
+        passed:
+          type: boolean
+          description: Whether this single assertion held.
+        errorMessage:
+          type:
+          - 'null'
+          - string
+          description: Why the assertion failed.
+        checkedVersionNumber:
+          type:
+          - 'null'
+          - string
+          description: Specification version the contract assertion checked against.
+        checkedVersionSource:
+          type:
+          - 'null'
+          - string
+          description: Where that version came from.
+        driftedFromVersionNumber:
+          type:
+          - 'null'
+          - string
+          description: Set when the response no longer matches the version it used to.
+      description: The outcome of one assertion, with expected and actual side by side.
+    TestSuiteList:
+      required:
+      - items
+      - totalCount
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestSuite'
+          description: The test suites on this page.
+        totalCount:
+          type: integer
+          description: Total number of suites, ignoring paging.
+          format: int32
+      description: A page of test suites.
+    TestSuite:
+      required:
+      - id
+      - name
+      - testCaseCount
+      - authMode
+      - createdAt
+      type: object
+      properties:
+        id:
+          type: string
+          description: Public id of the test suite.
+          format: uuid
+        name:
+          type: string
+          description: Display name of the suite, which is what the CLI resolves when you pass a name.
+        description:
+          type:
+          - 'null'
+          - string
+          description: Free-text note on the suite. Null when none was set.
+        tags:
+          type:
+          - 'null'
+          - array
+          items:
+            type: string
+          description: Labels used to group and filter suites.
+        testCaseCount:
+          type: integer
+          description: How many test cases the suite holds.
+          format: int32
+        authMode:
+          type: string
+          description: How the suite authenticates against the target API.
+        authType:
+          type:
+          - 'null'
+          - string
+          description: The concrete scheme when the suite carries its own credentials, for example bearer or basic.
+        createdAt:
+          type: string
+          description: When the suite was created, in UTC.
+          format: date-time
+        modifiedAt:
+          type:
+          - 'null'
+          - string
+          description: When the suite was last changed, in UTC. Null when it was never edited.
+          format: date-time
+        fixtureScopeJson:
+          type:
+          - 'null'
+          - string
+          description: Fixture scope of the suite, as JSON.
+        testSuiteFolderId:
+          type:
+          - 'null'
+          - string
+          description: Folder the suite sits in, or null at the root.
+          format: uuid
+      description: A test suite as it appears in a list, without its cases.
+    SeedExecutionResult:
+      required:
+      - success
+      - elapsedMilliseconds
+      - stepResults
+      - capturedVariables
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether every step of the seed completed. A failed seed does not stop the suite by itself.
+        elapsedMilliseconds:
+          type: integer
+          description: Duration of the whole seed sequence.
+          format: int64
+        stepResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeedStepResult'
+          description: One entry per seed step, in execution order.
+        capturedVariables:
+          type: object
+          additionalProperties:
+            type: string
+          description: Variables the seed captured for the suite that follows.
+        error:
+          type:
+          - 'null'
+          - string
+          description: Why the seed failed. Null on success.
+      description: The outcome of a seed sequence, which prepares data before a suite or cleans up after it.
+    TestCaseExecutionResult:
+      required:
+      - statusCode
+      - headers
+      - elapsedMilliseconds
+      - resolvedUrl
+      - resolvedMethod
+      - isPending
+      - isBlocked
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          description: Status code from the target server, or 0 when the request never went out.
+          format: int32
+        statusText:
+          type:
+          - 'null'
+          - string
+          description: Reason phrase from the target server.
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+          description: Response headers from the target server.
+        body:
+          type:
+          - 'null'
+          - string
+          description: Response body, which may be null for an empty response.
+        elapsedMilliseconds:
+          type: integer
+          description: Request duration in milliseconds.
+          format: int64
+        error:
+          type:
+          - 'null'
+          - string
+          description: Set when the request itself failed, for example on a timeout.
+        resolvedUrl:
+          type: string
+          description: The URL after variable substitution.
+        resolvedMethod:
+          type: string
+          description: The HTTP method used.
+        unresolvedVariables:
+          type:
+          - 'null'
+          - array
+          items:
+            type: string
+          description: Variables that could not be resolved, which is usually a missing environment value.
+        passed:
+          type:
+          - 'null'
+          - boolean
+          description: Whether every assertion held. Null when the case has no assertions or never ran.
+        assertionResults:
+          type:
+          - 'null'
+          - array
+          items:
+            $ref: '#/components/schemas/AssertionResult'
+          description: One entry per assertion on the case. Null when the case carries none or never ran.
+        testCaseId:
+          type:
+          - 'null'
+          - string
+          description: Public id of the test case.
+          format: uuid
+        testCaseName:
+          type:
+          - 'null'
+          - string
+          description: Name of the test case.
+        extractedVariables:
+          type:
+          - 'null'
+          - object
+          additionalProperties:
+            type: string
+          description: Variables this response contributed to later cases.
+        consumedVariables:
+          type:
+          - 'null'
+          - object
+          additionalProperties:
+            type: string
+          description: Variables this case read.
+        resolvedHeaders:
+          type:
+          - 'null'
+          - object
+          additionalProperties:
+            type: string
+          description: Request headers after variable substitution.
+        resolvedBody:
+          type:
+          - 'null'
+          - string
+          description: Request body after variable substitution.
+        responseSizeBytes:
+          type:
+          - 'null'
+          - integer
+          description: Size of the response body.
+          format: int64
+        preRequestScriptOutput:
+          type:
+          - 'null'
+          - array
+          items:
+            type: string
+          description: Console output of the pre-request script.
+        preRequestScriptError:
+          type:
+          - 'null'
+          - string
+          description: Set when the pre-request script failed.
+        postResponseScriptOutput:
+          type:
+          - 'null'
+          - array
+          items:
+            type: string
+          description: Console output of the post-response script.
+        postResponseScriptError:
+          type:
+          - 'null'
+          - string
+          description: Set when the post-response script failed.
+        timingBreakdown:
+          oneOf:
+          - $ref: '#/components/schemas/TimingBreakdown'
+          - type: 'null'
+          description: Where the time went inside the request.
+        isPending:
+          type: boolean
+          description: The case has not run yet.
+        isBlocked:
+          type: boolean
+          description: 'The case was never sent, because it writes and the environment is read-only.
+
+            This is neither a pass nor a failure, so do not fail a build on it alone.
+
+            '
+      description: 'What happened to one test case: the response it got, the assertions it checked, and the variables it passed on.'
+    TimingBreakdown:
+      required:
+      - dnsMs
+      - connectMs
+      - tlsMs
+      - firstByteMs
+      - downloadMs
+      - totalMs
+      type: object
+      properties:
+        dnsMs:
+          type: integer
+          description: Time spent resolving the hostname. Zero on a reused connection.
+          format: int64
+        connectMs:
+          type: integer
+          description: Time spent opening the TCP connection.
+          format: int64
+        tlsMs:
+          type: integer
+          description: Time spent on the TLS handshake.
+          format: int64
+        firstByteMs:
+          type: integer
+          description: Time from request sent to the first response byte, which is where server work shows up.
+          format: int64
+        downloadMs:
+          type: integer
+          description: Time spent reading the response body.
+          format: int64
+        totalMs:
+          type: integer
+          description: Total wall time of the request. It covers the phases above plus scheduling overhead.
+          format: int64
+      description: Where the time inside one request went, from name resolution to the last byte.
+    IterationResult:
+      required:
+      - iterationNumber
+      - results
+      - allPassed
+      - elapsedMs
+      - wasAborted
+      type: object
+      properties:
+        iterationNumber:
+          type: integer
+          description: The 1-based iteration number.
+          format: int32
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCaseExecutionResult'
+          description: The result of every test case in this iteration, in run order.
+        allPassed:
+          type: boolean
+          description: Whether every case passed in this iteration.
+        elapsedMs:
+          type: integer
+          description: Duration of this iteration.
+          format: int64
+        wasAborted:
+          type: boolean
+          description: Whether the iteration stopped early because of the error behaviour.
+        dataRowIndex:
+          type:
+          - 'null'
+          - integer
+          description: The 0-based data row, for a data-driven run.
+          format: int32
+        dataRowValues:
+          type:
+          - 'null'
+          - object
+          additionalProperties:
+            type: string
+          description: The data row values used, for a data-driven run.
+      description: One pass over the suite, for runs configured with more than one iteration or a data set.
+    TestSuiteExecutionResult:
+      required:
+      - results
+      - extractedVariables
+      - allPassed
+      - totalElapsedMs
+      - iterations
+      - threads
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCaseExecutionResult'
+          description: One entry per test case execution, in run order.
+        extractedVariables:
+          type: object
+          additionalProperties:
+            type: string
+          description: Variables extracted during the run and carried between cases.
+        allPassed:
+          type: boolean
+          description: Whether every case passed.
+        totalElapsedMs:
+          type: integer
+          description: Total run time in milliseconds.
+          format: int64
+        testRunPublicId:
+          type:
+          - 'null'
+          - string
+          description: Public id of the stored run, or null when results were not persisted.
+          format: uuid
+        iterations:
+          type: integer
+          description: Number of iterations executed.
+          format: int32
+        iterationResults:
+          type:
+          - 'null'
+          - array
+          items:
+            $ref: '#/components/schemas/IterationResult'
+          description: Per-iteration breakdown, present only when more than one iteration ran.
+        dataSetName:
+          type:
+          - 'null'
+          - string
+          description: Name of the data set, for a data-driven run.
+        dataRowCount:
+          type:
+          - 'null'
+          - integer
+          description: Number of data rows used.
+          format: int32
+        threads:
+          type: integer
+          description: Threads the run used.
+          format: int32
+        performanceMetrics:
+          oneOf:
+          - $ref: '#/components/schemas/PerformanceMetrics'
+          - type: 'null'
+          description: Timing distribution, present when the run used more than one thread or iteration.
+        preRunSeedResult:
+          oneOf:
+          - $ref: '#/components/schemas/SeedExecutionResult'
+          - type: 'null'
+          description: Result of the seed that ran before the suite.
+        postRunSeedResult:
+          oneOf:
+          - $ref: '#/components/schemas/SeedExecutionResult'
+          - type: 'null'
+          description: Result of the seed that ran after the suite.
+        resetSnapshotResult:
+          oneOf:
+          - $ref: '#/components/schemas/SnapshotRestoreResult'
+          - type: 'null'
+          description: Result of the snapshot restore that ran before the suite.
+      description: The full result of a suite run, including per-case detail, seeds and performance figures.
+    TestCasePerformance:
+      type: object
+      properties:
+        testCaseId:
+          type: string
+          description: Public id of the test case these figures belong to.
+          format: uuid
+        testCaseName:
+          type: string
+          description: Display name of the test case.
+        averageResponseTimeMs:
+          type: number
+          description: Mean response time of this case across all its executions.
+          format: double
+        minResponseTimeMs:
+          type: integer
+          description: Fastest execution of this case.
+          format: int64
+        maxResponseTimeMs:
+          type: integer
+          description: Slowest execution of this case.
+          format: int64
+        p95ResponseTimeMs:
+          type: integer
+          description: 95th percentile response time of this case.
+          format: int64
+        errorRatePercent:
+          type: number
+          description: Share of this case executions that failed, from 0 to 100.
+          format: double
+        requestCount:
+          type: integer
+          description: How often this case ran, which is iterations multiplied by threads.
+          format: int32
+      description: Latency figures for a single test case across all its executions.
+    OnErrorBehavior:
+      enum:
+      - ignore
+      - stop
+      - abort
+      type: string
+      description: 'What a run does when a test case errors. `ignore` continues, `stop` ends the
+
+        current iteration but starts the next one, and `abort` ends the whole run.
+
+        '
+  responses:
+    Unauthorized:
+      description: 'The API key is missing, invalid, expired or revoked. A US organization calling
+
+        without `X-RB-Region: us` also lands here, because the request reached the wrong
+
+        region.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    BadRequest:
+      description: The request was malformed or failed validation.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: 'The key is valid but lacks the permission or the project scope for this call.
+
+        A scoped key is also refused on organization level operations by design.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: 'The resource does not exist, or it belongs to another organization or project.
+
+        Both cases answer the same way on purpose, so the API cannot be used to probe
+
+        for foreign identifiers.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  parameters:
+    ProjectId:
+      name: ProjectId
+      in: path
+      description: Public id of the project.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProjectIdQuery:
+      name: ProjectIdQuery
+      in: query
+      description: Public id of the project.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Skip:
+      name: Skip
+      in: query
+      description: Number of items to skip. Defaults to 0.
+      schema:
+        type: integer
+        format: int32
+    Take:
+      name: Take
+      in: query
+      description: Maximum number of items to return.
+      schema:
+        type: integer
+        format: int32
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      description: 'An organization API key, created under Settings then API Keys. Keys start with
+
+        `rb_live_` and carry their own permission scopes, so a key only reaches what it
+
+        was granted.'
+      name: X-API-Key
+      in: header
+    ScimBearerAuth:
+      type: http
+      description: 'The SCIM token of the organization, issued when SCIM provisioning is enabled.
+
+        It is separate from an API key and only unlocks the SCIM endpoints.'
+      scheme: bearer
+x-routebase-folders:
+- name: API Specs
+  children: []
+- name: CI & Test Runs
+  children: []
+- name: Docs as Code
+  children: []
+- name: SCIM
+  children: []
+- name: Security
+  children: []
