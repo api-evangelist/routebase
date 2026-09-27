@@ -292,12 +292,143 @@ paths:
       x-routebase-folder-path: API Specs
 components:
   schemas:
-    OpenApiVersion:
+    PromoteVersionRequest:
+      required:
+      - environmentId
+      type: object
+      properties:
+        environmentId:
+          type: string
+          description: Environment the version was deployed to.
+          format: uuid
+        publishTarget:
+          oneOf:
+          - $ref: '#/components/schemas/PublishTarget'
+          - type: 'null'
+          description: Who the version becomes visible to. Defaults to `internal`.
+        impactAcknowledged:
+          type:
+          - 'null'
+          - boolean
+          description: 'Confirms you have seen the effect on dependent services. Send true to clear
+
+            a promotion that was refused with 409 for that reason.
+
+            '
+      description: Which environment a version was deployed to, and what that should make it visible to.
+    Problem:
+      required:
+      - status
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI identifying the problem type.
+        title:
+          type: string
+          description: A short summary of the problem type.
+        status:
+          type: integer
+          description: The HTTP status code.
+          format: int32
+        detail:
+          type: string
+          description: A human readable explanation.
+        instance:
+          type: string
+          description: The path that produced the error.
+        code:
+          type: string
+          description: 'The stable machine readable error code, for example `CONCURRENCY_CONFLICT`,
+
+            `PROJECT_LOCKED`, `API_KEY_SCOPE_DENIED` or `NOT_A_MEMBER`.
+
+            '
+      description: 'The error shape of the API, which follows RFC 9457. Branch on `code`, because
+
+        `detail` is written for people and may be reworded.
+
+        '
+    PromotionResult:
+      required:
+      - promotionId
+      - environmentId
+      - environmentName
+      - versionId
+      - versionNumber
+      - frozeVersion
+      - source
+      - isRollback
+      type: object
+      properties:
+        promotionId:
+          type: string
+          description: Public id of this promotion record, which the audit trail refers to.
+          format: uuid
+        environmentId:
+          type: string
+          description: Public id of the environment the version went into.
+          format: uuid
+        environmentName:
+          type: string
+          description: Display name of that environment.
+        versionId:
+          type: string
+          description: Public id of the promoted version.
+          format: uuid
+        versionNumber:
+          type: string
+          description: Version label of the promoted version.
+        frozeVersion:
+          type: boolean
+          description: Whether this promotion made the version immutable.
+        previousVersionNumber:
+          type:
+          - 'null'
+          - string
+          description: What the environment pinned before, or null if this is the first promotion.
+        source:
+          description: How the pin was set. A call with an API key is recorded as cli.
+          $ref: '#/components/schemas/PinSource'
+        isRollback:
+          type: boolean
+          description: Whether the pin moved back to a version the environment served earlier.
+      description: 'What the promotion changed: the new pin, whether it froze the version, and where the pin came from.'
+    ApiSpecList:
+      required:
+      - items
+      - totalCount
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiSpec'
+          description: The specifications on this page.
+        totalCount:
+          type: integer
+          description: Total number of specifications in the project, ignoring paging.
+          format: int32
+      description: A page of API specifications.
+    VersionStatus:
       enum:
-      - v3_0
-      - v3_1
+      - draft
+      - review
+      - published
+      - deprecated
       type: string
-      description: The OpenAPI dialect of a specification.
+      description: 'The lifecycle state of a specification version. Only `published` is frozen and
+
+        therefore safe to generate clients from.
+
+        '
+    PublishTarget:
+      enum:
+      - internal
+      - public
+      - exportOnly
+      type: string
+      description: Who a published version is visible to.
     SpecVersion:
       required:
       - id
@@ -337,6 +468,39 @@ components:
           - string
           description: Base64 concurrency token.
       description: One version of a specification. Only a published version is frozen.
+    SpecVersionList:
+      required:
+      - items
+      - totalCount
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpecVersion'
+          description: The versions on this page.
+        totalCount:
+          type: integer
+          description: Total number of versions of this specification, ignoring paging.
+          format: int32
+      description: A page of specification versions.
+    OpenApiVersion:
+      enum:
+      - v3_0
+      - v3_1
+      type: string
+      description: The OpenAPI dialect of a specification.
+    PinSource:
+      enum:
+      - manual
+      - cli
+      - gatewayDeployment
+      type: string
+      description: 'Where a version pin came from. A call authenticated with an API key is recorded
+
+        as `cli`, which marks it as a pipeline assertion rather than a manual entry.
+
+        '
     ApiSpec:
       required:
       - id
@@ -390,185 +554,7 @@ components:
           - string
           description: Number of the most recent published version, or null when none is published yet.
       description: An API specification in a project, with the number of its latest published version.
-    Problem:
-      required:
-      - status
-      type: object
-      properties:
-        type:
-          type: string
-          description: A URI identifying the problem type.
-        title:
-          type: string
-          description: A short summary of the problem type.
-        status:
-          type: integer
-          description: The HTTP status code.
-          format: int32
-        detail:
-          type: string
-          description: A human readable explanation.
-        instance:
-          type: string
-          description: The path that produced the error.
-        code:
-          type: string
-          description: 'The stable machine readable error code, for example `CONCURRENCY_CONFLICT`,
-
-            `PROJECT_LOCKED`, `API_KEY_SCOPE_DENIED` or `NOT_A_MEMBER`.
-
-            '
-      description: 'The error shape of the API, which follows RFC 9457. Branch on `code`, because
-
-        `detail` is written for people and may be reworded.
-
-        '
-    PublishTarget:
-      enum:
-      - internal
-      - public
-      - exportOnly
-      type: string
-      description: Who a published version is visible to.
-    SpecVersionList:
-      required:
-      - items
-      - totalCount
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/SpecVersion'
-          description: The versions on this page.
-        totalCount:
-          type: integer
-          description: Total number of versions of this specification, ignoring paging.
-          format: int32
-      description: A page of specification versions.
-    ApiSpecList:
-      required:
-      - items
-      - totalCount
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/ApiSpec'
-          description: The specifications on this page.
-        totalCount:
-          type: integer
-          description: Total number of specifications in the project, ignoring paging.
-          format: int32
-      description: A page of API specifications.
-    PinSource:
-      enum:
-      - manual
-      - cli
-      - gatewayDeployment
-      type: string
-      description: 'Where a version pin came from. A call authenticated with an API key is recorded
-
-        as `cli`, which marks it as a pipeline assertion rather than a manual entry.
-
-        '
-    PromoteVersionRequest:
-      required:
-      - environmentId
-      type: object
-      properties:
-        environmentId:
-          type: string
-          description: Environment the version was deployed to.
-          format: uuid
-        publishTarget:
-          oneOf:
-          - $ref: '#/components/schemas/PublishTarget'
-          - type: 'null'
-          description: Who the version becomes visible to. Defaults to `internal`.
-        impactAcknowledged:
-          type:
-          - 'null'
-          - boolean
-          description: 'Confirms you have seen the effect on dependent services. Send true to clear
-
-            a promotion that was refused with 409 for that reason.
-
-            '
-      description: Which environment a version was deployed to, and what that should make it visible to.
-    PromotionResult:
-      required:
-      - promotionId
-      - environmentId
-      - environmentName
-      - versionId
-      - versionNumber
-      - frozeVersion
-      - source
-      - isRollback
-      type: object
-      properties:
-        promotionId:
-          type: string
-          description: Public id of this promotion record, which the audit trail refers to.
-          format: uuid
-        environmentId:
-          type: string
-          description: Public id of the environment the version went into.
-          format: uuid
-        environmentName:
-          type: string
-          description: Display name of that environment.
-        versionId:
-          type: string
-          description: Public id of the promoted version.
-          format: uuid
-        versionNumber:
-          type: string
-          description: Version label of the promoted version.
-        frozeVersion:
-          type: boolean
-          description: Whether this promotion made the version immutable.
-        previousVersionNumber:
-          type:
-          - 'null'
-          - string
-          description: What the environment pinned before, or null if this is the first promotion.
-        source:
-          description: How the pin was set. A call with an API key is recorded as cli.
-          $ref: '#/components/schemas/PinSource'
-        isRollback:
-          type: boolean
-          description: Whether the pin moved back to a version the environment served earlier.
-      description: 'What the promotion changed: the new pin, whether it froze the version, and where the pin came from.'
-    VersionStatus:
-      enum:
-      - draft
-      - review
-      - published
-      - deprecated
-      type: string
-      description: 'The lifecycle state of a specification version. Only `published` is frozen and
-
-        therefore safe to generate clients from.
-
-        '
   parameters:
-    VersionId:
-      name: VersionId
-      in: path
-      description: Public id of the specification version.
-      required: true
-      schema:
-        type: string
-        format: uuid
-    SpecFormat:
-      name: SpecFormat
-      in: query
-      description: Output format. Defaults to `yaml`.
-      schema:
-        type: string
     SpecId:
       name: SpecId
       in: path
@@ -577,6 +563,34 @@ components:
       schema:
         type: string
         format: uuid
+    VersionId:
+      name: VersionId
+      in: path
+      description: Public id of the specification version.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Take:
+      name: Take
+      in: query
+      description: Maximum number of items to return.
+      schema:
+        type: integer
+        format: int32
+    SpecFormat:
+      name: SpecFormat
+      in: query
+      description: Output format. Defaults to `yaml`.
+      schema:
+        type: string
+    Skip:
+      name: Skip
+      in: query
+      description: Number of items to skip. Defaults to 0.
+      schema:
+        type: integer
+        format: int32
     ProjectId:
       name: ProjectId
       in: path
@@ -585,41 +599,9 @@ components:
       schema:
         type: string
         format: uuid
-    Skip:
-      name: Skip
-      in: query
-      description: Number of items to skip. Defaults to 0.
-      schema:
-        type: integer
-        format: int32
-    Take:
-      name: Take
-      in: query
-      description: Maximum number of items to return.
-      schema:
-        type: integer
-        format: int32
   responses:
-    Unauthorized:
-      description: 'The API key is missing, invalid, expired or revoked. A US organization calling
-
-        without `X-RB-Region: us` also lands here, because the request reached the wrong
-
-        region.'
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/Problem'
     BadRequest:
       description: The request was malformed or failed validation.
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/Problem'
-    Forbidden:
-      description: 'The key is valid but lacks the permission or the project scope for this call.
-
-        A scoped key is also refused on organization level operations by design.'
       content:
         application/problem+json:
           schema:
@@ -630,6 +612,24 @@ components:
         Both cases answer the same way on purpose, so the API cannot be used to probe
 
         for foreign identifiers.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthorized:
+      description: 'The API key is missing, invalid, expired or revoked. A US organization calling
+
+        without `X-RB-Region: us` also lands here, because the request reached the wrong
+
+        region.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: 'The key is valid but lacks the permission or the project scope for this call.
+
+        A scoped key is also refused on organization level operations by design.'
       content:
         application/problem+json:
           schema:

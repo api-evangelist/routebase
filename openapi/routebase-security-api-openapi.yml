@@ -273,25 +273,14 @@ paths:
       x-routebase-folder-path: Security
 components:
   schemas:
-    FindingStatus:
+    ScanTrigger:
       enum:
-      - open
-      - inProgress
-      - fixed
-      - falsePositive
-      - acceptedRisk
-      - duplicate
+      - manual
+      - scheduled
+      - api
+      - ciCd
       type: string
-      description: Where a finding stands in triage.
-    Severity:
-      enum:
-      - info
-      - low
-      - medium
-      - high
-      - critical
-      type: string
-      description: How serious a security finding is.
+      description: What started a scan run.
     ScanRun:
       required:
       - id
@@ -380,89 +369,15 @@ components:
           description: Set when a cancel was asked for but the run has not stopped yet.
           format: date-time
       description: A security scan, from queued through running to its final score and finding count.
-    ScanStatus:
+    Severity:
       enum:
-      - queued
-      - running
-      - completed
-      - failed
-      - cancelled
-      type: string
-      description: The lifecycle state of a scan run.
-    SecurityFindingList:
-      required:
-      - items
-      - total
-      - skip
-      - take
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/SecurityFinding'
-          description: The findings on this page.
-        total:
-          type: integer
-          description: Total number of matching findings, ignoring paging.
-          format: int32
-        skip:
-          type: integer
-          description: How many findings were skipped to reach this page.
-          format: int32
-        take:
-          type: integer
-          description: Page size that was applied.
-          format: int32
-      description: A page of security findings.
-    Problem:
-      required:
-      - status
-      type: object
-      properties:
-        type:
-          type: string
-          description: A URI identifying the problem type.
-        title:
-          type: string
-          description: A short summary of the problem type.
-        status:
-          type: integer
-          description: The HTTP status code.
-          format: int32
-        detail:
-          type: string
-          description: A human readable explanation.
-        instance:
-          type: string
-          description: The path that produced the error.
-        code:
-          type: string
-          description: 'The stable machine readable error code, for example `CONCURRENCY_CONFLICT`,
-
-            `PROJECT_LOCKED`, `API_KEY_SCOPE_DENIED` or `NOT_A_MEMBER`.
-
-            '
-      description: 'The error shape of the API, which follows RFC 9457. Branch on `code`, because
-
-        `detail` is written for people and may be reworded.
-
-        '
-    Confidence:
-      enum:
+      - info
       - low
       - medium
       - high
+      - critical
       type: string
-      description: How certain the scanner is that a finding is real.
-    ScanTrigger:
-      enum:
-      - manual
-      - scheduled
-      - api
-      - ciCd
-      type: string
-      description: What started a scan run.
+      description: How serious a security finding is.
     SecurityFinding:
       required:
       - id
@@ -573,17 +488,92 @@ components:
           description: When the finding was last touched, in UTC.
           format: date-time
       description: One security finding, with its OWASP category, its triage state and a curl command that reproduces it.
+    Problem:
+      required:
+      - status
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI identifying the problem type.
+        title:
+          type: string
+          description: A short summary of the problem type.
+        status:
+          type: integer
+          description: The HTTP status code.
+          format: int32
+        detail:
+          type: string
+          description: A human readable explanation.
+        instance:
+          type: string
+          description: The path that produced the error.
+        code:
+          type: string
+          description: 'The stable machine readable error code, for example `CONCURRENCY_CONFLICT`,
+
+            `PROJECT_LOCKED`, `API_KEY_SCOPE_DENIED` or `NOT_A_MEMBER`.
+
+            '
+      description: 'The error shape of the API, which follows RFC 9457. Branch on `code`, because
+
+        `detail` is written for people and may be reworded.
+
+        '
+    Confidence:
+      enum:
+      - low
+      - medium
+      - high
+      type: string
+      description: How certain the scanner is that a finding is real.
+    FindingStatus:
+      enum:
+      - open
+      - inProgress
+      - fixed
+      - falsePositive
+      - acceptedRisk
+      - duplicate
+      type: string
+      description: Where a finding stands in triage.
+    SecurityFindingList:
+      required:
+      - items
+      - total
+      - skip
+      - take
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecurityFinding'
+          description: The findings on this page.
+        total:
+          type: integer
+          description: Total number of matching findings, ignoring paging.
+          format: int32
+        skip:
+          type: integer
+          description: How many findings were skipped to reach this page.
+          format: int32
+        take:
+          type: integer
+          description: Page size that was applied.
+          format: int32
+      description: A page of security findings.
+    ScanStatus:
+      enum:
+      - queued
+      - running
+      - completed
+      - failed
+      - cancelled
+      type: string
+      description: The lifecycle state of a scan run.
   responses:
-    Unauthorized:
-      description: 'The API key is missing, invalid, expired or revoked. A US organization calling
-
-        without `X-RB-Region: us` also lands here, because the request reached the wrong
-
-        region.'
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/Problem'
     NotFound:
       description: 'The resource does not exist, or it belongs to another organization or project.
 
@@ -598,6 +588,16 @@ components:
       description: 'The key is valid but lacks the permission or the project scope for this call.
 
         A scoped key is also refused on organization level operations by design.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthorized:
+      description: 'The API key is missing, invalid, expired or revoked. A US organization calling
+
+        without `X-RB-Region: us` also lands here, because the request reached the wrong
+
+        region.'
       content:
         application/problem+json:
           schema:
