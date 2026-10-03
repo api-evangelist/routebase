@@ -418,7 +418,278 @@ paths:
       - ApiKeyAuth: []
       x-routebase-folder-path: CI & Test Runs
 components:
+  parameters:
+    Skip:
+      name: Skip
+      in: query
+      description: Number of items to skip. Defaults to 0.
+      schema:
+        type: integer
+        format: int32
+    Take:
+      name: Take
+      in: query
+      description: Maximum number of items to return.
+      schema:
+        type: integer
+        format: int32
+    ProjectId:
+      name: ProjectId
+      in: path
+      description: Public id of the project.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProjectIdQuery:
+      name: ProjectIdQuery
+      in: query
+      description: Public id of the project.
+      required: true
+      schema:
+        type: string
+        format: uuid
   schemas:
+    AssertionResult:
+      required:
+      - assertionId
+      - type
+      - operator
+      - passed
+      type: object
+      properties:
+        assertionId:
+          type: string
+          description: Public id of the assertion, stable across runs.
+          format: uuid
+        type:
+          type: string
+          description: What the assertion checks, for example the status code or a JSON path.
+        operator:
+          type: string
+          description: How expected and actual are compared.
+        target:
+          type:
+          - 'null'
+          - string
+          description: What the assertion points at, for example a JSON path.
+        expectedValue:
+          type:
+          - 'null'
+          - string
+          description: The value the assertion demanded, rendered as text.
+        actualValue:
+          type:
+          - 'null'
+          - string
+          description: The value the response actually carried, rendered as text.
+        passed:
+          type: boolean
+          description: Whether this single assertion held.
+        errorMessage:
+          type:
+          - 'null'
+          - string
+          description: Why the assertion failed.
+        checkedVersionNumber:
+          type:
+          - 'null'
+          - string
+          description: Specification version the contract assertion checked against.
+        checkedVersionSource:
+          type:
+          - 'null'
+          - string
+          description: Where that version came from.
+        driftedFromVersionNumber:
+          type:
+          - 'null'
+          - string
+          description: Set when the response no longer matches the version it used to.
+      description: The outcome of one assertion, with expected and actual side by side.
+    PerformanceMetrics:
+      type: object
+      properties:
+        averageResponseTimeMs:
+          type: number
+          description: Mean response time across every request in the run.
+          format: double
+        minResponseTimeMs:
+          type: integer
+          description: Fastest single response in the run.
+          format: int64
+        maxResponseTimeMs:
+          type: integer
+          description: Slowest single response in the run, which is the number a timeout budget has to beat.
+          format: int64
+        medianResponseTimeMs:
+          type: integer
+          description: Median response time, less distorted by outliers than the mean.
+          format: int64
+        p95ResponseTimeMs:
+          type: integer
+          description: 95th percentile, so one request in twenty was slower than this.
+          format: int64
+        p99ResponseTimeMs:
+          type: integer
+          description: 99th percentile, the usual number behind a latency commitment.
+          format: int64
+        throughputPerSecond:
+          type: number
+          description: Completed requests per second across the run.
+          format: double
+        errorRatePercent:
+          type: number
+          description: Share of requests that failed, from 0 to 100.
+          format: double
+        totalRequests:
+          type: integer
+          description: Requests sent across all threads and iterations.
+          format: int32
+        successfulRequests:
+          type: integer
+          description: Requests that completed and passed their assertions.
+          format: int32
+        failedRequests:
+          type: integer
+          description: Requests that errored or failed an assertion.
+          format: int32
+        perTestCase:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCasePerformance'
+          description: The same figures broken down per test case, which is how you find the one slow call.
+      description: Latency distribution and throughput of a run. Present once a run used parallel threads or several iterations.
+    TestCasePerformance:
+      type: object
+      properties:
+        testCaseId:
+          type: string
+          description: Public id of the test case these figures belong to.
+          format: uuid
+        testCaseName:
+          type: string
+          description: Display name of the test case.
+        averageResponseTimeMs:
+          type: number
+          description: Mean response time of this case across all its executions.
+          format: double
+        minResponseTimeMs:
+          type: integer
+          description: Fastest execution of this case.
+          format: int64
+        maxResponseTimeMs:
+          type: integer
+          description: Slowest execution of this case.
+          format: int64
+        p95ResponseTimeMs:
+          type: integer
+          description: 95th percentile response time of this case.
+          format: int64
+        errorRatePercent:
+          type: number
+          description: Share of this case executions that failed, from 0 to 100.
+          format: double
+        requestCount:
+          type: integer
+          description: How often this case ran, which is iterations multiplied by threads.
+          format: int32
+      description: Latency figures for a single test case across all its executions.
+    TestSuite:
+      required:
+      - id
+      - name
+      - testCaseCount
+      - authMode
+      - createdAt
+      type: object
+      properties:
+        id:
+          type: string
+          description: Public id of the test suite.
+          format: uuid
+        name:
+          type: string
+          description: Display name of the suite, which is what the CLI resolves when you pass a name.
+        description:
+          type:
+          - 'null'
+          - string
+          description: Free-text note on the suite. Null when none was set.
+        tags:
+          type:
+          - 'null'
+          - array
+          items:
+            type: string
+          description: Labels used to group and filter suites.
+        testCaseCount:
+          type: integer
+          description: How many test cases the suite holds.
+          format: int32
+        authMode:
+          type: string
+          description: How the suite authenticates against the target API.
+        authType:
+          type:
+          - 'null'
+          - string
+          description: The concrete scheme when the suite carries its own credentials, for example bearer or basic.
+        createdAt:
+          type: string
+          description: When the suite was created, in UTC.
+          format: date-time
+        modifiedAt:
+          type:
+          - 'null'
+          - string
+          description: When the suite was last changed, in UTC. Null when it was never edited.
+          format: date-time
+        fixtureScopeJson:
+          type:
+          - 'null'
+          - string
+          description: Fixture scope of the suite, as JSON.
+        testSuiteFolderId:
+          type:
+          - 'null'
+          - string
+          description: Folder the suite sits in, or null at the root.
+          format: uuid
+      description: A test suite as it appears in a list, without its cases.
+    Problem:
+      required:
+      - status
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI identifying the problem type.
+        title:
+          type: string
+          description: A short summary of the problem type.
+        status:
+          type: integer
+          description: The HTTP status code.
+          format: int32
+        detail:
+          type: string
+          description: A human readable explanation.
+        instance:
+          type: string
+          description: The path that produced the error.
+        code:
+          type: string
+          description: 'The stable machine readable error code, for example `CONCURRENCY_CONFLICT`,
+
+            `PROJECT_LOCKED`, `API_KEY_SCOPE_DENIED` or `NOT_A_MEMBER`.
+
+            '
+      description: 'The error shape of the API, which follows RFC 9457. Branch on `code`, because
+
+        `detail` is written for people and may be reworded.
+
+        '
     TimingBreakdown:
       required:
       - dnsMs
@@ -520,715 +791,6 @@ components:
 
             '
       description: Everything a pipeline needs to start one suite run.
-    Environment:
-      required:
-      - id
-      - name
-      - type
-      - createdAt
-      - variableCount
-      type: object
-      properties:
-        id:
-          type: string
-          description: Public id of the environment.
-          format: uuid
-        name:
-          type: string
-          description: Display name of the environment, such as Staging.
-        type:
-          description: Which stage the environment stands for.
-          $ref: '#/components/schemas/EnvironmentType'
-        baseUrl:
-          type:
-          - 'null'
-          - string
-          description: Base URL requests in this environment are sent to.
-        createdAt:
-          type: string
-          description: When the environment was created, in UTC.
-          format: date-time
-        variableCount:
-          type: integer
-          description: How many variables the environment defines for substitution.
-          format: int32
-        freezesVersion:
-          type: boolean
-          description: A promotion into this environment makes the promoted version immutable.
-        isDocsSource:
-          type: boolean
-          description: What this environment pins is what the public documentation shows.
-        isMockSource:
-          type: boolean
-          description: What this environment pins is what the mock server serves.
-        isReadOnly:
-          type: boolean
-          description: 'Only GET, HEAD and OPTIONS may be sent here. Test cases that write are
-
-            reported as blocked rather than run.
-
-            '
-      description: A target environment with its base URL, its variables and the roles it plays for docs, mocks and version pinning.
-    TestSuiteExecutionResult:
-      required:
-      - results
-      - extractedVariables
-      - allPassed
-      - totalElapsedMs
-      - iterations
-      - threads
-      type: object
-      properties:
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/TestCaseExecutionResult'
-          description: One entry per test case execution, in run order.
-        extractedVariables:
-          type: object
-          additionalProperties:
-            type: string
-          description: Variables extracted during the run and carried between cases.
-        allPassed:
-          type: boolean
-          description: Whether every case passed.
-        totalElapsedMs:
-          type: integer
-          description: Total run time in milliseconds.
-          format: int64
-        testRunPublicId:
-          type:
-          - 'null'
-          - string
-          description: Public id of the stored run, or null when results were not persisted.
-          format: uuid
-        iterations:
-          type: integer
-          description: Number of iterations executed.
-          format: int32
-        iterationResults:
-          type:
-          - 'null'
-          - array
-          items:
-            $ref: '#/components/schemas/IterationResult'
-          description: Per-iteration breakdown, present only when more than one iteration ran.
-        dataSetName:
-          type:
-          - 'null'
-          - string
-          description: Name of the data set, for a data-driven run.
-        dataRowCount:
-          type:
-          - 'null'
-          - integer
-          description: Number of data rows used.
-          format: int32
-        threads:
-          type: integer
-          description: Threads the run used.
-          format: int32
-        performanceMetrics:
-          oneOf:
-          - $ref: '#/components/schemas/PerformanceMetrics'
-          - type: 'null'
-          description: Timing distribution, present when the run used more than one thread or iteration.
-        preRunSeedResult:
-          oneOf:
-          - $ref: '#/components/schemas/SeedExecutionResult'
-          - type: 'null'
-          description: Result of the seed that ran before the suite.
-        postRunSeedResult:
-          oneOf:
-          - $ref: '#/components/schemas/SeedExecutionResult'
-          - type: 'null'
-          description: Result of the seed that ran after the suite.
-        resetSnapshotResult:
-          oneOf:
-          - $ref: '#/components/schemas/SnapshotRestoreResult'
-          - type: 'null'
-          description: Result of the snapshot restore that ran before the suite.
-      description: The full result of a suite run, including per-case detail, seeds and performance figures.
-    TestCasePerformance:
-      type: object
-      properties:
-        testCaseId:
-          type: string
-          description: Public id of the test case these figures belong to.
-          format: uuid
-        testCaseName:
-          type: string
-          description: Display name of the test case.
-        averageResponseTimeMs:
-          type: number
-          description: Mean response time of this case across all its executions.
-          format: double
-        minResponseTimeMs:
-          type: integer
-          description: Fastest execution of this case.
-          format: int64
-        maxResponseTimeMs:
-          type: integer
-          description: Slowest execution of this case.
-          format: int64
-        p95ResponseTimeMs:
-          type: integer
-          description: 95th percentile response time of this case.
-          format: int64
-        errorRatePercent:
-          type: number
-          description: Share of this case executions that failed, from 0 to 100.
-          format: double
-        requestCount:
-          type: integer
-          description: How often this case ran, which is iterations multiplied by threads.
-          format: int32
-      description: Latency figures for a single test case across all its executions.
-    EnvironmentType:
-      enum:
-      - development
-      - staging
-      - production
-      - custom
-      type: string
-      description: The stage an environment stands for.
-    PerformanceMetrics:
-      type: object
-      properties:
-        averageResponseTimeMs:
-          type: number
-          description: Mean response time across every request in the run.
-          format: double
-        minResponseTimeMs:
-          type: integer
-          description: Fastest single response in the run.
-          format: int64
-        maxResponseTimeMs:
-          type: integer
-          description: Slowest single response in the run, which is the number a timeout budget has to beat.
-          format: int64
-        medianResponseTimeMs:
-          type: integer
-          description: Median response time, less distorted by outliers than the mean.
-          format: int64
-        p95ResponseTimeMs:
-          type: integer
-          description: 95th percentile, so one request in twenty was slower than this.
-          format: int64
-        p99ResponseTimeMs:
-          type: integer
-          description: 99th percentile, the usual number behind a latency commitment.
-          format: int64
-        throughputPerSecond:
-          type: number
-          description: Completed requests per second across the run.
-          format: double
-        errorRatePercent:
-          type: number
-          description: Share of requests that failed, from 0 to 100.
-          format: double
-        totalRequests:
-          type: integer
-          description: Requests sent across all threads and iterations.
-          format: int32
-        successfulRequests:
-          type: integer
-          description: Requests that completed and passed their assertions.
-          format: int32
-        failedRequests:
-          type: integer
-          description: Requests that errored or failed an assertion.
-          format: int32
-        perTestCase:
-          type: array
-          items:
-            $ref: '#/components/schemas/TestCasePerformance'
-          description: The same figures broken down per test case, which is how you find the one slow call.
-      description: Latency distribution and throughput of a run. Present once a run used parallel threads or several iterations.
-    SnapshotCleanupStepResult:
-      type: object
-      properties:
-        order:
-          type: integer
-          description: Position of the cleanup call in the sequence, starting at 1.
-          format: int32
-        method:
-          type: string
-          description: HTTP method of the cleanup call, usually DELETE.
-        url:
-          type: string
-          description: The URL the cleanup call went to.
-        success:
-          type: boolean
-          description: Whether the cleanup call succeeded.
-        statusCode:
-          type:
-          - 'null'
-          - integer
-          description: HTTP status the cleanup call received.
-          format: int32
-        error:
-          type:
-          - 'null'
-          - string
-          description: Why the cleanup call failed. Null on success.
-        elapsedMilliseconds:
-          type: integer
-          description: Duration of the cleanup call.
-          format: int64
-      description: One cleanup call inside a snapshot restore.
-    Problem:
-      required:
-      - status
-      type: object
-      properties:
-        type:
-          type: string
-          description: A URI identifying the problem type.
-        title:
-          type: string
-          description: A short summary of the problem type.
-        status:
-          type: integer
-          description: The HTTP status code.
-          format: int32
-        detail:
-          type: string
-          description: A human readable explanation.
-        instance:
-          type: string
-          description: The path that produced the error.
-        code:
-          type: string
-          description: 'The stable machine readable error code, for example `CONCURRENCY_CONFLICT`,
-
-            `PROJECT_LOCKED`, `API_KEY_SCOPE_DENIED` or `NOT_A_MEMBER`.
-
-            '
-      description: 'The error shape of the API, which follows RFC 9457. Branch on `code`, because
-
-        `detail` is written for people and may be reworded.
-
-        '
-    ExecuteTestSuiteRequest:
-      type: object
-      properties:
-        environmentId:
-          type:
-          - 'null'
-          - string
-          description: Environment whose variables the run substitutes.
-          format: uuid
-        persistResults:
-          type:
-          - 'null'
-          - boolean
-          description: Whether to store the run and its results. Defaults to true.
-        iterations:
-          type:
-          - 'null'
-          - integer
-          description: How often to run the suite, between 1 and 10000. Defaults to 1.
-          format: int32
-        delayMs:
-          type:
-          - 'null'
-          - integer
-          description: Pause between iterations in milliseconds, up to 60000. Defaults to 0.
-          format: int32
-        onError:
-          oneOf:
-          - $ref: '#/components/schemas/OnErrorBehavior'
-          - type: 'null'
-          description: Error handling behaviour. Defaults to `ignore`.
-        dataSetId:
-          type:
-          - 'null'
-          - string
-          description: Data set for data-driven execution, which runs every case once per row.
-          format: uuid
-        threads:
-          type:
-          - 'null'
-          - integer
-          description: Parallel threads for performance mode, between 1 and 50. Defaults to 1.
-          format: int32
-        progressRunId:
-          type:
-          - 'null'
-          - string
-          description: 'Client-generated id for live progress. Join the test-runner hub group for
-
-            this id before sending the request, then follow the run case by case.
-
-            '
-          format: uuid
-        caseIds:
-          type:
-          - 'null'
-          - array
-          items:
-            type: string
-            format: uuid
-          description: Run only these test cases. Null or empty runs the whole suite.
-      description: Options for a suite run. Every field has a default, so the body may be omitted entirely.
-    TestSuiteList:
-      required:
-      - items
-      - totalCount
-      type: object
-      properties:
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/TestSuite'
-          description: The test suites on this page.
-        totalCount:
-          type: integer
-          description: Total number of suites, ignoring paging.
-          format: int32
-      description: A page of test suites.
-    SnapshotRestoreResult:
-      required:
-      - success
-      - phase
-      - elapsedMilliseconds
-      - cleanupResults
-      - warnings
-      type: object
-      properties:
-        success:
-          type: boolean
-          description: Whether the environment was restored to the snapshot state.
-        phase:
-          type: string
-          description: Which phase the restore reached.
-        elapsedMilliseconds:
-          type: integer
-          description: Duration of the whole restore.
-          format: int64
-        cleanupResults:
-          type: array
-          items:
-            $ref: '#/components/schemas/SnapshotCleanupStepResult'
-          description: One entry per cleanup call, in execution order.
-        reSeedResult:
-          oneOf:
-          - $ref: '#/components/schemas/SeedExecutionResult'
-          - type: 'null'
-          description: Result of the seed that repopulated the environment after cleanup. Null when none ran.
-        warnings:
-          type: array
-          items:
-            type: string
-          description: Non-fatal problems, such as a cleanup call that found nothing to delete.
-        error:
-          type:
-          - 'null'
-          - string
-          description: Why the restore failed. Null on success.
-      description: The outcome of restoring an environment to a known state before a run.
-    CliRunResponse:
-      required:
-      - allPassed
-      - totalElapsedMs
-      - totalTests
-      - passedTests
-      - failedTests
-      - iterations
-      type: object
-      properties:
-        allPassed:
-          type: boolean
-          description: Whether every test case passed across every iteration. Gate your build on this.
-        totalElapsedMs:
-          type: integer
-          description: Total run time in milliseconds.
-          format: int64
-        totalTests:
-          type: integer
-          description: Number of test case executions.
-          format: int32
-        passedTests:
-          type: integer
-          description: Number that passed.
-          format: int32
-        failedTests:
-          type: integer
-          description: Number that failed or errored.
-          format: int32
-        testRunId:
-          type:
-          - 'null'
-          - string
-          description: Public id of the stored test run, which the report endpoints take.
-          format: uuid
-        iterations:
-          type: integer
-          description: Number of iterations executed.
-          format: int32
-        iterationResults:
-          type:
-          - 'null'
-          - array
-          items:
-            $ref: '#/components/schemas/IterationResult'
-          description: Per-iteration breakdown, present only when more than one iteration ran.
-        report:
-          type:
-          - 'null'
-          - string
-          description: The report content, present only when `reportFormat` was requested.
-        reportFormat:
-          type:
-          - 'null'
-          - string
-          description: Format of the inline report.
-        reportContentType:
-          type:
-          - 'null'
-          - string
-          description: MIME type of the inline report.
-      description: The verdict of a suite run, shaped for a CI step. Branch your build on allPassed.
-    TestSuite:
-      required:
-      - id
-      - name
-      - testCaseCount
-      - authMode
-      - createdAt
-      type: object
-      properties:
-        id:
-          type: string
-          description: Public id of the test suite.
-          format: uuid
-        name:
-          type: string
-          description: Display name of the suite, which is what the CLI resolves when you pass a name.
-        description:
-          type:
-          - 'null'
-          - string
-          description: Free-text note on the suite. Null when none was set.
-        tags:
-          type:
-          - 'null'
-          - array
-          items:
-            type: string
-          description: Labels used to group and filter suites.
-        testCaseCount:
-          type: integer
-          description: How many test cases the suite holds.
-          format: int32
-        authMode:
-          type: string
-          description: How the suite authenticates against the target API.
-        authType:
-          type:
-          - 'null'
-          - string
-          description: The concrete scheme when the suite carries its own credentials, for example bearer or basic.
-        createdAt:
-          type: string
-          description: When the suite was created, in UTC.
-          format: date-time
-        modifiedAt:
-          type:
-          - 'null'
-          - string
-          description: When the suite was last changed, in UTC. Null when it was never edited.
-          format: date-time
-        fixtureScopeJson:
-          type:
-          - 'null'
-          - string
-          description: Fixture scope of the suite, as JSON.
-        testSuiteFolderId:
-          type:
-          - 'null'
-          - string
-          description: Folder the suite sits in, or null at the root.
-          format: uuid
-      description: A test suite as it appears in a list, without its cases.
-    CliRunStatus:
-      required:
-      - id
-      - status
-      - completedCases
-      - totalCases
-      - passedCases
-      - failedCases
-      - currentDurationMs
-      - startedAt
-      type: object
-      properties:
-        id:
-          type: string
-          description: Public id of the test run.
-          format: uuid
-        status:
-          enum:
-          - pending
-          - running
-          - passed
-          - failed
-          - error
-          - cancelled
-          type: string
-          description: Current state of the run.
-        completedCases:
-          type: integer
-          description: Test cases finished so far.
-          format: int32
-        totalCases:
-          type: integer
-          description: Test cases in the run.
-          format: int32
-        passedCases:
-          type: integer
-          description: Test cases that passed.
-          format: int32
-        failedCases:
-          type: integer
-          description: Test cases that failed.
-          format: int32
-        currentDurationMs:
-          type: integer
-          description: Elapsed time, which counts up while the run is going and is final once it ends.
-          format: int64
-        startedAt:
-          type: string
-          description: When the run started.
-          format: date-time
-        completedAt:
-          type:
-          - 'null'
-          - string
-          description: When the run ended, or null while it is still going.
-          format: date-time
-      description: How far a running suite has come, for progress output while a run is in flight.
-    OnErrorBehavior:
-      enum:
-      - ignore
-      - stop
-      - abort
-      type: string
-      description: 'What a run does when a test case errors. `ignore` continues, `stop` ends the
-
-        current iteration but starts the next one, and `abort` ends the whole run.
-
-        '
-    SeedStepResult:
-      type: object
-      properties:
-        order:
-          type: integer
-          description: Position of the step in the sequence, starting at 1.
-          format: int32
-        type:
-          type: string
-          description: What the step does.
-        success:
-          type: boolean
-          description: Whether this step completed.
-        elapsedMilliseconds:
-          type: integer
-          description: Duration of this step.
-          format: int64
-        statusCode:
-          type:
-          - 'null'
-          - integer
-          description: HTTP status the step received. Null for steps that send no request.
-          format: int32
-        error:
-          type:
-          - 'null'
-          - string
-          description: Why the step failed. Null on success.
-        resolvedUrl:
-          type:
-          - 'null'
-          - string
-          description: The URL after variable substitution.
-        resolvedMethod:
-          type:
-          - 'null'
-          - string
-          description: The HTTP method the step used.
-        iterationIndex:
-          type:
-          - 'null'
-          - integer
-          description: Which repetition this is, for a step configured to loop.
-          format: int32
-        capturedVariables:
-          type:
-          - 'null'
-          - object
-          additionalProperties:
-            type: string
-          description: Variables this step captured for the steps and cases that follow.
-      description: One step inside a seed sequence.
-    AssertionResult:
-      required:
-      - assertionId
-      - type
-      - operator
-      - passed
-      type: object
-      properties:
-        assertionId:
-          type: string
-          description: Public id of the assertion, stable across runs.
-          format: uuid
-        type:
-          type: string
-          description: What the assertion checks, for example the status code or a JSON path.
-        operator:
-          type: string
-          description: How expected and actual are compared.
-        target:
-          type:
-          - 'null'
-          - string
-          description: What the assertion points at, for example a JSON path.
-        expectedValue:
-          type:
-          - 'null'
-          - string
-          description: The value the assertion demanded, rendered as text.
-        actualValue:
-          type:
-          - 'null'
-          - string
-          description: The value the response actually carried, rendered as text.
-        passed:
-          type: boolean
-          description: Whether this single assertion held.
-        errorMessage:
-          type:
-          - 'null'
-          - string
-          description: Why the assertion failed.
-        checkedVersionNumber:
-          type:
-          - 'null'
-          - string
-          description: Specification version the contract assertion checked against.
-        checkedVersionSource:
-          type:
-          - 'null'
-          - string
-          description: Where that version came from.
-        driftedFromVersionNumber:
-          type:
-          - 'null'
-          - string
-          description: Set when the response no longer matches the version it used to.
-      description: The outcome of one assertion, with expected and actual side by side.
     TestCaseExecutionResult:
       required:
       - statusCode
@@ -1376,6 +938,240 @@ components:
 
             '
       description: 'What happened to one test case: the response it got, the assertions it checked, and the variables it passed on.'
+    CliRunStatus:
+      required:
+      - id
+      - status
+      - completedCases
+      - totalCases
+      - passedCases
+      - failedCases
+      - currentDurationMs
+      - startedAt
+      type: object
+      properties:
+        id:
+          type: string
+          description: Public id of the test run.
+          format: uuid
+        status:
+          enum:
+          - pending
+          - running
+          - passed
+          - failed
+          - error
+          - cancelled
+          type: string
+          description: Current state of the run.
+        completedCases:
+          type: integer
+          description: Test cases finished so far.
+          format: int32
+        totalCases:
+          type: integer
+          description: Test cases in the run.
+          format: int32
+        passedCases:
+          type: integer
+          description: Test cases that passed.
+          format: int32
+        failedCases:
+          type: integer
+          description: Test cases that failed.
+          format: int32
+        currentDurationMs:
+          type: integer
+          description: Elapsed time, which counts up while the run is going and is final once it ends.
+          format: int64
+        startedAt:
+          type: string
+          description: When the run started.
+          format: date-time
+        completedAt:
+          type:
+          - 'null'
+          - string
+          description: When the run ended, or null while it is still going.
+          format: date-time
+      description: How far a running suite has come, for progress output while a run is in flight.
+    TestSuiteExecutionResult:
+      required:
+      - results
+      - extractedVariables
+      - allPassed
+      - totalElapsedMs
+      - iterations
+      - threads
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCaseExecutionResult'
+          description: One entry per test case execution, in run order.
+        extractedVariables:
+          type: object
+          additionalProperties:
+            type: string
+          description: Variables extracted during the run and carried between cases.
+        allPassed:
+          type: boolean
+          description: Whether every case passed.
+        totalElapsedMs:
+          type: integer
+          description: Total run time in milliseconds.
+          format: int64
+        testRunPublicId:
+          type:
+          - 'null'
+          - string
+          description: Public id of the stored run, or null when results were not persisted.
+          format: uuid
+        iterations:
+          type: integer
+          description: Number of iterations executed.
+          format: int32
+        iterationResults:
+          type:
+          - 'null'
+          - array
+          items:
+            $ref: '#/components/schemas/IterationResult'
+          description: Per-iteration breakdown, present only when more than one iteration ran.
+        dataSetName:
+          type:
+          - 'null'
+          - string
+          description: Name of the data set, for a data-driven run.
+        dataRowCount:
+          type:
+          - 'null'
+          - integer
+          description: Number of data rows used.
+          format: int32
+        threads:
+          type: integer
+          description: Threads the run used.
+          format: int32
+        performanceMetrics:
+          oneOf:
+          - $ref: '#/components/schemas/PerformanceMetrics'
+          - type: 'null'
+          description: Timing distribution, present when the run used more than one thread or iteration.
+        preRunSeedResult:
+          oneOf:
+          - $ref: '#/components/schemas/SeedExecutionResult'
+          - type: 'null'
+          description: Result of the seed that ran before the suite.
+        postRunSeedResult:
+          oneOf:
+          - $ref: '#/components/schemas/SeedExecutionResult'
+          - type: 'null'
+          description: Result of the seed that ran after the suite.
+        resetSnapshotResult:
+          oneOf:
+          - $ref: '#/components/schemas/SnapshotRestoreResult'
+          - type: 'null'
+          description: Result of the snapshot restore that ran before the suite.
+      description: The full result of a suite run, including per-case detail, seeds and performance figures.
+    Environment:
+      required:
+      - id
+      - name
+      - type
+      - createdAt
+      - variableCount
+      type: object
+      properties:
+        id:
+          type: string
+          description: Public id of the environment.
+          format: uuid
+        name:
+          type: string
+          description: Display name of the environment, such as Staging.
+        type:
+          description: Which stage the environment stands for.
+          $ref: '#/components/schemas/EnvironmentType'
+        baseUrl:
+          type:
+          - 'null'
+          - string
+          description: Base URL requests in this environment are sent to.
+        createdAt:
+          type: string
+          description: When the environment was created, in UTC.
+          format: date-time
+        variableCount:
+          type: integer
+          description: How many variables the environment defines for substitution.
+          format: int32
+        freezesVersion:
+          type: boolean
+          description: A promotion into this environment makes the promoted version immutable.
+        isDocsSource:
+          type: boolean
+          description: What this environment pins is what the public documentation shows.
+        isMockSource:
+          type: boolean
+          description: What this environment pins is what the mock server serves.
+        isReadOnly:
+          type: boolean
+          description: 'Only GET, HEAD and OPTIONS may be sent here. Test cases that write are
+
+            reported as blocked rather than run.
+
+            '
+      description: A target environment with its base URL, its variables and the roles it plays for docs, mocks and version pinning.
+    EnvironmentType:
+      enum:
+      - development
+      - staging
+      - production
+      - custom
+      type: string
+      description: The stage an environment stands for.
+    SnapshotRestoreResult:
+      required:
+      - success
+      - phase
+      - elapsedMilliseconds
+      - cleanupResults
+      - warnings
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the environment was restored to the snapshot state.
+        phase:
+          type: string
+          description: Which phase the restore reached.
+        elapsedMilliseconds:
+          type: integer
+          description: Duration of the whole restore.
+          format: int64
+        cleanupResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/SnapshotCleanupStepResult'
+          description: One entry per cleanup call, in execution order.
+        reSeedResult:
+          oneOf:
+          - $ref: '#/components/schemas/SeedExecutionResult'
+          - type: 'null'
+          description: Result of the seed that repopulated the environment after cleanup. Null when none ran.
+        warnings:
+          type: array
+          items:
+            type: string
+          description: Non-fatal problems, such as a cleanup call that found nothing to delete.
+        error:
+          type:
+          - 'null'
+          - string
+          description: Why the restore failed. Null on success.
+      description: The outcome of restoring an environment to a known state before a run.
     SeedExecutionResult:
       required:
       - success
@@ -1407,6 +1203,58 @@ components:
           - string
           description: Why the seed failed. Null on success.
       description: The outcome of a seed sequence, which prepares data before a suite or cleans up after it.
+    SeedStepResult:
+      type: object
+      properties:
+        order:
+          type: integer
+          description: Position of the step in the sequence, starting at 1.
+          format: int32
+        type:
+          type: string
+          description: What the step does.
+        success:
+          type: boolean
+          description: Whether this step completed.
+        elapsedMilliseconds:
+          type: integer
+          description: Duration of this step.
+          format: int64
+        statusCode:
+          type:
+          - 'null'
+          - integer
+          description: HTTP status the step received. Null for steps that send no request.
+          format: int32
+        error:
+          type:
+          - 'null'
+          - string
+          description: Why the step failed. Null on success.
+        resolvedUrl:
+          type:
+          - 'null'
+          - string
+          description: The URL after variable substitution.
+        resolvedMethod:
+          type:
+          - 'null'
+          - string
+          description: The HTTP method the step used.
+        iterationIndex:
+          type:
+          - 'null'
+          - integer
+          description: Which repetition this is, for a step configured to loop.
+          format: int32
+        capturedVariables:
+          type:
+          - 'null'
+          - object
+          additionalProperties:
+            type: string
+          description: Variables this step captured for the steps and cases that follow.
+      description: One step inside a seed sequence.
     IterationResult:
       required:
       - iterationNumber
@@ -1449,19 +1297,200 @@ components:
             type: string
           description: The data row values used, for a data-driven run.
       description: One pass over the suite, for runs configured with more than one iteration or a data set.
+    SnapshotCleanupStepResult:
+      type: object
+      properties:
+        order:
+          type: integer
+          description: Position of the cleanup call in the sequence, starting at 1.
+          format: int32
+        method:
+          type: string
+          description: HTTP method of the cleanup call, usually DELETE.
+        url:
+          type: string
+          description: The URL the cleanup call went to.
+        success:
+          type: boolean
+          description: Whether the cleanup call succeeded.
+        statusCode:
+          type:
+          - 'null'
+          - integer
+          description: HTTP status the cleanup call received.
+          format: int32
+        error:
+          type:
+          - 'null'
+          - string
+          description: Why the cleanup call failed. Null on success.
+        elapsedMilliseconds:
+          type: integer
+          description: Duration of the cleanup call.
+          format: int64
+      description: One cleanup call inside a snapshot restore.
+    ExecuteTestSuiteRequest:
+      type: object
+      properties:
+        environmentId:
+          type:
+          - 'null'
+          - string
+          description: Environment whose variables the run substitutes.
+          format: uuid
+        persistResults:
+          type:
+          - 'null'
+          - boolean
+          description: Whether to store the run and its results. Defaults to true.
+        iterations:
+          type:
+          - 'null'
+          - integer
+          description: How often to run the suite, between 1 and 10000. Defaults to 1.
+          format: int32
+        delayMs:
+          type:
+          - 'null'
+          - integer
+          description: Pause between iterations in milliseconds, up to 60000. Defaults to 0.
+          format: int32
+        onError:
+          oneOf:
+          - $ref: '#/components/schemas/OnErrorBehavior'
+          - type: 'null'
+          description: Error handling behaviour. Defaults to `ignore`.
+        dataSetId:
+          type:
+          - 'null'
+          - string
+          description: Data set for data-driven execution, which runs every case once per row.
+          format: uuid
+        threads:
+          type:
+          - 'null'
+          - integer
+          description: Parallel threads for performance mode, between 1 and 50. Defaults to 1.
+          format: int32
+        progressRunId:
+          type:
+          - 'null'
+          - string
+          description: 'Client-generated id for live progress. Join the test-runner hub group for
+
+            this id before sending the request, then follow the run case by case.
+
+            '
+          format: uuid
+        caseIds:
+          type:
+          - 'null'
+          - array
+          items:
+            type: string
+            format: uuid
+          description: Run only these test cases. Null or empty runs the whole suite.
+      description: Options for a suite run. Every field has a default, so the body may be omitted entirely.
+    TestSuiteList:
+      required:
+      - items
+      - totalCount
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestSuite'
+          description: The test suites on this page.
+        totalCount:
+          type: integer
+          description: Total number of suites, ignoring paging.
+          format: int32
+      description: A page of test suites.
+    OnErrorBehavior:
+      enum:
+      - ignore
+      - stop
+      - abort
+      type: string
+      description: 'What a run does when a test case errors. `ignore` continues, `stop` ends the
+
+        current iteration but starts the next one, and `abort` ends the whole run.
+
+        '
+    CliRunResponse:
+      required:
+      - allPassed
+      - totalElapsedMs
+      - totalTests
+      - passedTests
+      - failedTests
+      - iterations
+      type: object
+      properties:
+        allPassed:
+          type: boolean
+          description: Whether every test case passed across every iteration. Gate your build on this.
+        totalElapsedMs:
+          type: integer
+          description: Total run time in milliseconds.
+          format: int64
+        totalTests:
+          type: integer
+          description: Number of test case executions.
+          format: int32
+        passedTests:
+          type: integer
+          description: Number that passed.
+          format: int32
+        failedTests:
+          type: integer
+          description: Number that failed or errored.
+          format: int32
+        testRunId:
+          type:
+          - 'null'
+          - string
+          description: Public id of the stored test run, which the report endpoints take.
+          format: uuid
+        iterations:
+          type: integer
+          description: Number of iterations executed.
+          format: int32
+        iterationResults:
+          type:
+          - 'null'
+          - array
+          items:
+            $ref: '#/components/schemas/IterationResult'
+          description: Per-iteration breakdown, present only when more than one iteration ran.
+        report:
+          type:
+          - 'null'
+          - string
+          description: The report content, present only when `reportFormat` was requested.
+        reportFormat:
+          type:
+          - 'null'
+          - string
+          description: Format of the inline report.
+        reportContentType:
+          type:
+          - 'null'
+          - string
+          description: MIME type of the inline report.
+      description: The verdict of a suite run, shaped for a CI step. Branch your build on allPassed.
   responses:
-    BadRequest:
-      description: The request was malformed or failed validation.
+    Forbidden:
+      description: 'The key is valid but lacks the permission or the project scope for this call.
+
+        A scoped key is also refused on organization level operations by design.'
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
-    NotFound:
-      description: 'The resource does not exist, or it belongs to another organization or project.
-
-        Both cases answer the same way on purpose, so the API cannot be used to probe
-
-        for foreign identifiers.'
+    BadRequest:
+      description: The request was malformed or failed validation.
       content:
         application/problem+json:
           schema:
@@ -1476,45 +1505,16 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
-    Forbidden:
-      description: 'The key is valid but lacks the permission or the project scope for this call.
+    NotFound:
+      description: 'The resource does not exist, or it belongs to another organization or project.
 
-        A scoped key is also refused on organization level operations by design.'
+        Both cases answer the same way on purpose, so the API cannot be used to probe
+
+        for foreign identifiers.'
       content:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
-  parameters:
-    Take:
-      name: Take
-      in: query
-      description: Maximum number of items to return.
-      schema:
-        type: integer
-        format: int32
-    ProjectIdQuery:
-      name: ProjectIdQuery
-      in: query
-      description: Public id of the project.
-      required: true
-      schema:
-        type: string
-        format: uuid
-    Skip:
-      name: Skip
-      in: query
-      description: Number of items to skip. Defaults to 0.
-      schema:
-        type: integer
-        format: int32
-    ProjectId:
-      name: ProjectId
-      in: path
-      description: Public id of the project.
-      required: true
-      schema:
-        type: string
-        format: uuid
   securitySchemes:
     ApiKeyAuth:
       type: apiKey

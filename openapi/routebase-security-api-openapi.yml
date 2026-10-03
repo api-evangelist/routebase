@@ -273,6 +273,39 @@ paths:
       x-routebase-folder-path: Security
 components:
   schemas:
+    Problem:
+      required:
+      - status
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI identifying the problem type.
+        title:
+          type: string
+          description: A short summary of the problem type.
+        status:
+          type: integer
+          description: The HTTP status code.
+          format: int32
+        detail:
+          type: string
+          description: A human readable explanation.
+        instance:
+          type: string
+          description: The path that produced the error.
+        code:
+          type: string
+          description: 'The stable machine readable error code, for example `CONCURRENCY_CONFLICT`,
+
+            `PROJECT_LOCKED`, `API_KEY_SCOPE_DENIED` or `NOT_A_MEMBER`.
+
+            '
+      description: 'The error shape of the API, which follows RFC 9457. Branch on `code`, because
+
+        `detail` is written for people and may be reworded.
+
+        '
     ScanTrigger:
       enum:
       - manual
@@ -281,103 +314,6 @@ components:
       - ciCd
       type: string
       description: What started a scan run.
-    ScanRun:
-      required:
-      - id
-      - scanProfilePublicId
-      - status
-      - trigger
-      - startedAt
-      - totalChecks
-      - checksPassed
-      - checksFailed
-      - checksSkipped
-      - securityScore
-      - openFindingsCount
-      type: object
-      properties:
-        id:
-          type: string
-          description: Public id of the scan run.
-          format: uuid
-        scanProfilePublicId:
-          type: string
-          description: Profile the run was started from.
-          format: uuid
-        status:
-          description: Where the run stands. Poll until it leaves queued and running.
-          $ref: '#/components/schemas/ScanStatus'
-        trigger:
-          description: What started the run.
-          $ref: '#/components/schemas/ScanTrigger'
-        startedAt:
-          type: string
-          description: When the run was queued, in UTC.
-          format: date-time
-        completedAt:
-          type:
-          - 'null'
-          - string
-          description: When the run finished, in UTC. Null while it is still going.
-          format: date-time
-        totalChecks:
-          type: integer
-          description: How many individual checks the enabled scanners performed.
-          format: int32
-        checksPassed:
-          type: integer
-          description: Checks that found nothing.
-          format: int32
-        checksFailed:
-          type: integer
-          description: Checks that produced a finding.
-          format: int32
-        checksSkipped:
-          type: integer
-          description: Checks that could not run, for example because an endpoint needs authentication the profile does not carry.
-          format: int32
-        securityScore:
-          type: integer
-          description: Score between 0 and 100, final once the status is `completed`.
-          format: int32
-        errorMessage:
-          type:
-          - 'null'
-          - string
-          description: Set when the run failed.
-        openFindingsCount:
-          type: integer
-          description: Findings still open after this run.
-          format: int32
-        enabledScannerCount:
-          type: integer
-          description: Scanners the profile enables.
-          format: int32
-        scannersCompleted:
-          type: integer
-          description: Scanners finished so far.
-          format: int32
-        currentScannerId:
-          type:
-          - 'null'
-          - string
-          description: Scanner running right now.
-        cancelRequestedAt:
-          type:
-          - 'null'
-          - string
-          description: Set when a cancel was asked for but the run has not stopped yet.
-          format: date-time
-      description: A security scan, from queued through running to its final score and finding count.
-    Severity:
-      enum:
-      - info
-      - low
-      - medium
-      - high
-      - critical
-      type: string
-      description: How serious a security finding is.
     SecurityFinding:
       required:
       - id
@@ -488,46 +424,6 @@ components:
           description: When the finding was last touched, in UTC.
           format: date-time
       description: One security finding, with its OWASP category, its triage state and a curl command that reproduces it.
-    Problem:
-      required:
-      - status
-      type: object
-      properties:
-        type:
-          type: string
-          description: A URI identifying the problem type.
-        title:
-          type: string
-          description: A short summary of the problem type.
-        status:
-          type: integer
-          description: The HTTP status code.
-          format: int32
-        detail:
-          type: string
-          description: A human readable explanation.
-        instance:
-          type: string
-          description: The path that produced the error.
-        code:
-          type: string
-          description: 'The stable machine readable error code, for example `CONCURRENCY_CONFLICT`,
-
-            `PROJECT_LOCKED`, `API_KEY_SCOPE_DENIED` or `NOT_A_MEMBER`.
-
-            '
-      description: 'The error shape of the API, which follows RFC 9457. Branch on `code`, because
-
-        `detail` is written for people and may be reworded.
-
-        '
-    Confidence:
-      enum:
-      - low
-      - medium
-      - high
-      type: string
-      description: How certain the scanner is that a finding is real.
     FindingStatus:
       enum:
       - open
@@ -538,6 +434,119 @@ components:
       - duplicate
       type: string
       description: Where a finding stands in triage.
+    ScanRun:
+      required:
+      - id
+      - scanProfilePublicId
+      - status
+      - trigger
+      - startedAt
+      - totalChecks
+      - checksPassed
+      - checksFailed
+      - checksSkipped
+      - securityScore
+      - openFindingsCount
+      type: object
+      properties:
+        id:
+          type: string
+          description: Public id of the scan run.
+          format: uuid
+        scanProfilePublicId:
+          type: string
+          description: Profile the run was started from.
+          format: uuid
+        status:
+          description: Where the run stands. Poll until it leaves queued and running.
+          $ref: '#/components/schemas/ScanStatus'
+        trigger:
+          description: What started the run.
+          $ref: '#/components/schemas/ScanTrigger'
+        startedAt:
+          type: string
+          description: When the run was queued, in UTC.
+          format: date-time
+        completedAt:
+          type:
+          - 'null'
+          - string
+          description: When the run finished, in UTC. Null while it is still going.
+          format: date-time
+        totalChecks:
+          type: integer
+          description: How many individual checks the enabled scanners performed.
+          format: int32
+        checksPassed:
+          type: integer
+          description: Checks that found nothing.
+          format: int32
+        checksFailed:
+          type: integer
+          description: Checks that produced a finding.
+          format: int32
+        checksSkipped:
+          type: integer
+          description: Checks that could not run, for example because an endpoint needs authentication the profile does not carry.
+          format: int32
+        securityScore:
+          type: integer
+          description: Score between 0 and 100, final once the status is `completed`.
+          format: int32
+        errorMessage:
+          type:
+          - 'null'
+          - string
+          description: Set when the run failed.
+        openFindingsCount:
+          type: integer
+          description: Findings still open after this run.
+          format: int32
+        enabledScannerCount:
+          type: integer
+          description: Scanners the profile enables.
+          format: int32
+        scannersCompleted:
+          type: integer
+          description: Scanners finished so far.
+          format: int32
+        currentScannerId:
+          type:
+          - 'null'
+          - string
+          description: Scanner running right now.
+        cancelRequestedAt:
+          type:
+          - 'null'
+          - string
+          description: Set when a cancel was asked for but the run has not stopped yet.
+          format: date-time
+      description: A security scan, from queued through running to its final score and finding count.
+    Severity:
+      enum:
+      - info
+      - low
+      - medium
+      - high
+      - critical
+      type: string
+      description: How serious a security finding is.
+    ScanStatus:
+      enum:
+      - queued
+      - running
+      - completed
+      - failed
+      - cancelled
+      type: string
+      description: The lifecycle state of a scan run.
+    Confidence:
+      enum:
+      - low
+      - medium
+      - high
+      type: string
+      description: How certain the scanner is that a finding is real.
     SecurityFindingList:
       required:
       - items
@@ -564,26 +573,23 @@ components:
           description: Page size that was applied.
           format: int32
       description: A page of security findings.
-    ScanStatus:
-      enum:
-      - queued
-      - running
-      - completed
-      - failed
-      - cancelled
-      type: string
-      description: The lifecycle state of a scan run.
+  parameters:
+    Skip:
+      name: Skip
+      in: query
+      description: Number of items to skip. Defaults to 0.
+      schema:
+        type: integer
+        format: int32
+    ProjectId:
+      name: ProjectId
+      in: path
+      description: Public id of the project.
+      required: true
+      schema:
+        type: string
+        format: uuid
   responses:
-    NotFound:
-      description: 'The resource does not exist, or it belongs to another organization or project.
-
-        Both cases answer the same way on purpose, so the API cannot be used to probe
-
-        for foreign identifiers.'
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/Problem'
     Forbidden:
       description: 'The key is valid but lacks the permission or the project scope for this call.
 
@@ -602,22 +608,16 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
-  parameters:
-    ProjectId:
-      name: ProjectId
-      in: path
-      description: Public id of the project.
-      required: true
-      schema:
-        type: string
-        format: uuid
-    Skip:
-      name: Skip
-      in: query
-      description: Number of items to skip. Defaults to 0.
-      schema:
-        type: integer
-        format: int32
+    NotFound:
+      description: 'The resource does not exist, or it belongs to another organization or project.
+
+        Both cases answer the same way on purpose, so the API cannot be used to probe
+
+        for foreign identifiers.'
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
