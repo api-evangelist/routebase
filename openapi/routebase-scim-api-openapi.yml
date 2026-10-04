@@ -641,64 +641,6 @@ paths:
       x-routebase-folder-path: SCIM
 components:
   schemas:
-    Problem:
-      required:
-      - status
-      type: object
-      properties:
-        type:
-          type: string
-          description: A URI identifying the problem type.
-        title:
-          type: string
-          description: A short summary of the problem type.
-        status:
-          type: integer
-          description: The HTTP status code.
-          format: int32
-        detail:
-          type: string
-          description: A human readable explanation.
-        instance:
-          type: string
-          description: The path that produced the error.
-        code:
-          type: string
-          description: 'The stable machine readable error code, for example `CONCURRENCY_CONFLICT`,
-
-            `PROJECT_LOCKED`, `API_KEY_SCOPE_DENIED` or `NOT_A_MEMBER`.
-
-            '
-      description: 'The error shape of the API, which follows RFC 9457. Branch on `code`, because
-
-        `detail` is written for people and may be reworded.
-
-        '
-    ScimGroupMemberRef:
-      required:
-      - value
-      type: object
-      properties:
-        value:
-          type: string
-          description: SCIM id of the member.
-        display:
-          type:
-          - 'null'
-          - string
-          description: Display name of the member, for readability.
-        $ref:
-          type:
-          - 'null'
-          - string
-          description: URL of the member resource.
-        type:
-          type:
-          - 'null'
-          - string
-          description: Kind of member. Routebase only supports User.
-          default: User
-      description: A reference from a group to one of its members.
     ScimUserResource:
       required:
       - schemas
@@ -770,6 +712,73 @@ components:
           - string
           description: Entity tag of the resource, when the provider asked for one.
       description: SCIM resource metadata, written by Routebase rather than by the identity provider.
+    Problem:
+      required:
+      - status
+      type: object
+      properties:
+        type:
+          type: string
+          description: A URI identifying the problem type.
+        title:
+          type: string
+          description: A short summary of the problem type.
+        status:
+          type: integer
+          description: The HTTP status code.
+          format: int32
+        detail:
+          type: string
+          description: A human readable explanation.
+        instance:
+          type: string
+          description: The path that produced the error.
+        code:
+          type: string
+          description: 'The stable machine readable error code, for example `CONCURRENCY_CONFLICT`,
+
+            `PROJECT_LOCKED`, `API_KEY_SCOPE_DENIED` or `NOT_A_MEMBER`.
+
+            '
+      description: 'The error shape of the API, which follows RFC 9457. Branch on `code`, because
+
+        `detail` is written for people and may be reworded.
+
+        '
+    ScimGroupResource:
+      required:
+      - schemas
+      - id
+      - displayName
+      - members
+      - meta
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          description: Always contains `urn:ietf:params:scim:schemas:core:2.0:Group`.
+        id:
+          type: string
+          description: SCIM id of the group, assigned by Routebase.
+        externalId:
+          type:
+          - 'null'
+          - string
+          description: The identifier the identity provider uses for this group.
+        displayName:
+          type: string
+          description: Group name, which is what a group mapping matches on.
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimGroupMemberRef'
+          description: Users in the group. Add and remove them with a PatchOp rather than by replacing the list.
+        meta:
+          description: Resource metadata written by Routebase, not by the identity provider.
+          $ref: '#/components/schemas/ScimMeta'
+      description: A SCIM 2.0 group with its members. Groups map onto Routebase teams.
     ScimGroupListResponse:
       required:
       - schemas
@@ -826,6 +835,60 @@ components:
           - string
           description: The SCIM error type, for example `invalidFilter`.
       description: The SCIM error envelope. It replaces the problem+json shape on every SCIM endpoint.
+    ScimPatchRequest:
+      required:
+      - schemas
+      - Operations
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          description: Always contains `urn:ietf:params:scim:api:messages:2.0:PatchOp`.
+        Operations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPatchOperation'
+          description: The operations to apply, in order. Capitalised because SCIM defines it that way.
+      description: A SCIM PatchOp envelope, the usual way an identity provider changes one attribute.
+    ScimEmail:
+      required:
+      - value
+      - primary
+      type: object
+      properties:
+        value:
+          type: string
+          description: The email address.
+        primary:
+          type: boolean
+          description: Whether this is the address Routebase uses to identify the user.
+        type:
+          type:
+          - 'null'
+          - string
+          description: Label the identity provider attached, such as work or home.
+      description: One email address of a SCIM user.
+    ScimName:
+      type: object
+      properties:
+        givenName:
+          type:
+          - 'null'
+          - string
+          description: First name.
+        familyName:
+          type:
+          - 'null'
+          - string
+          description: Last name.
+        formatted:
+          type:
+          - 'null'
+          - string
+          description: The full name as the identity provider renders it.
+      description: The structured name parts of a SCIM user.
     ScimUserListResponse:
       required:
       - schemas
@@ -858,23 +921,6 @@ components:
             $ref: '#/components/schemas/ScimUserResource'
           description: The users on this page. Capitalised because SCIM defines it that way.
       description: A SCIM ListResponse envelope holding users.
-    ScimPatchRequest:
-      required:
-      - schemas
-      - Operations
-      type: object
-      properties:
-        schemas:
-          type: array
-          items:
-            type: string
-          description: Always contains `urn:ietf:params:scim:api:messages:2.0:PatchOp`.
-        Operations:
-          type: array
-          items:
-            $ref: '#/components/schemas/ScimPatchOperation'
-          description: The operations to apply, in order. Capitalised because SCIM defines it that way.
-      description: A SCIM PatchOp envelope, the usual way an identity provider changes one attribute.
     ScimPatchOperation:
       required:
       - op
@@ -895,92 +941,32 @@ components:
         value:
           description: The new value, whose shape depends on the path.
       description: One operation inside a PatchOp.
-    ScimEmail:
+    ScimGroupMemberRef:
       required:
       - value
-      - primary
       type: object
       properties:
         value:
           type: string
-          description: The email address.
-        primary:
-          type: boolean
-          description: Whether this is the address Routebase uses to identify the user.
+          description: SCIM id of the member.
+        display:
+          type:
+          - 'null'
+          - string
+          description: Display name of the member, for readability.
+        $ref:
+          type:
+          - 'null'
+          - string
+          description: URL of the member resource.
         type:
           type:
           - 'null'
           - string
-          description: Label the identity provider attached, such as work or home.
-      description: One email address of a SCIM user.
-    ScimGroupResource:
-      required:
-      - schemas
-      - id
-      - displayName
-      - members
-      - meta
-      type: object
-      properties:
-        schemas:
-          type: array
-          items:
-            type: string
-          description: Always contains `urn:ietf:params:scim:schemas:core:2.0:Group`.
-        id:
-          type: string
-          description: SCIM id of the group, assigned by Routebase.
-        externalId:
-          type:
-          - 'null'
-          - string
-          description: The identifier the identity provider uses for this group.
-        displayName:
-          type: string
-          description: Group name, which is what a group mapping matches on.
-        members:
-          type: array
-          items:
-            $ref: '#/components/schemas/ScimGroupMemberRef'
-          description: Users in the group. Add and remove them with a PatchOp rather than by replacing the list.
-        meta:
-          description: Resource metadata written by Routebase, not by the identity provider.
-          $ref: '#/components/schemas/ScimMeta'
-      description: A SCIM 2.0 group with its members. Groups map onto Routebase teams.
-    ScimName:
-      type: object
-      properties:
-        givenName:
-          type:
-          - 'null'
-          - string
-          description: First name.
-        familyName:
-          type:
-          - 'null'
-          - string
-          description: Last name.
-        formatted:
-          type:
-          - 'null'
-          - string
-          description: The full name as the identity provider renders it.
-      description: The structured name parts of a SCIM user.
-  responses:
-    ScimError:
-      description: A SCIM error envelope.
-      content:
-        application/scim+json:
-          schema:
-            $ref: '#/components/schemas/ScimError'
+          description: Kind of member. Routebase only supports User.
+          default: User
+      description: A reference from a group to one of its members.
   parameters:
-    OrgSlug:
-      name: OrgSlug
-      in: path
-      description: Slug of the organization, as shown in Settings.
-      required: true
-      schema:
-        type: string
     ScimStartIndex:
       name: ScimStartIndex
       in: query
@@ -1003,6 +989,20 @@ components:
       schema:
         type: integer
         format: int32
+    OrgSlug:
+      name: OrgSlug
+      in: path
+      description: Slug of the organization, as shown in Settings.
+      required: true
+      schema:
+        type: string
+  responses:
+    ScimError:
+      description: A SCIM error envelope.
+      content:
+        application/scim+json:
+          schema:
+            $ref: '#/components/schemas/ScimError'
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
