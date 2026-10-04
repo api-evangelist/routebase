@@ -1,0 +1,73 @@
+slug: routebase
+provider: Routebase
+generated_by: planning/capability-mapping/scripts/classify_capabilities.py
+model: claude-opus-5
+frame:
+- Software & Technology
+min_confidence: 0.7
+capability_model:
+  source: https://github.com/vincentmakes/turbo-ea-capabilities
+  license: CC-BY-4.0
+  attribution: Turbo EA Capabilities by Vincent Verdet — Turbo EA, https://github.com/vincentmakes/turbo-ea-capabilities,
+    CC BY 4.0
+  notice: NOTICE
+edge_count: 5
+edges:
+- tag: CI & Test Runs
+  spec_file: routebase-ci-test-runs-api-openapi.yml
+  capability_id: BC-4200.50
+  capability_id_l1: BC-4200
+  capability_name: Software Quality Engineering
+  confidence: 0.78
+  evidence: POST /api/cli/run  cliRunTestSuite  Run a test suite and wait for the result; GET /api/projects/{projectId}/test-suites  getTestSuites  List
+    the test suites of a project
+  reason: Operations list and execute automated test suites and return assertion results and reports (AssertionResult,
+    TestSuiteExecutionResult), i.e. automated test suite stewardship and execution — software quality
+    engineering. CI framing is present but the surface is test-run centric rather than build/artefact
+    pipelines.
+- tag: SCIM
+  spec_file: routebase-scim-api-openapi.yml
+  capability_id: BC-4230.50
+  capability_id_l1: BC-4230
+  capability_name: Tenant Identity Federation
+  confidence: 0.78
+  evidence: POST /scim/v2/{orgSlug}/Users  scimCreateUser  Provision a user; DELETE /scim/v2/{orgSlug}/Groups/{id}  scimDeleteGroup  Deprovision
+    a group
+  reason: SCIM 2.0 user and group provisioning scoped per organisation slug is tenant user-account lifecycle
+    via SCIM, matching Tenant Identity Federation in the SaaS frame. It is the vendor exposing directory
+    sync for its tenants, not an internal IAM programme.
+- tag: Security
+  spec_file: routebase-security-api-openapi.yml
+  capability_id: BC-620.40
+  capability_id_l1: BC-620
+  capability_name: Vulnerability Management
+  confidence: 0.76
+  evidence: POST /api/projects/{projectId}/security/scan-profiles/{profileId}/run  enqueueScanRun  Start
+    a security scan; GET .../security/findings  getSecurityFindings  List security findings; schemas SecurityFinding,
+    Severity, FindingStatus
+  reason: Running security scans against the API and tracking findings with severity and status, exported
+    as SARIF, is vulnerability scanning and remediation tracking. Not threat detection/SOC and not business
+    compliance attestation.
+- tag: API Specs
+  spec_file: routebase-api-specs-api-openapi.yml
+  capability_id: BC-4270.10
+  capability_id_l1: BC-4270
+  capability_name: Public API Lifecycle Management
+  confidence: 0.75
+  evidence: GET /api/projects/{projectId}/specs/{specId}/versions  getSpecVersions  List the versions
+    of a specification; POST .../versions/{versionId}/promote  promoteSpecVersion  Record that a version
+    went into an environment
+  reason: 'The operations manage OpenAPI specification artefacts and their published versions/promotion,
+    which is API specification and versioning stewardship — Public API Lifecycle Management. Not a generic
+    document store: schemas are ApiSpec, SpecVersion, OpenApiVersion, PublishTarget.'
+- tag: Docs as Code
+  spec_file: routebase-docs-as-code-api-openapi.yml
+  capability_id: BC-4270.30
+  capability_id_l1: BC-4270
+  capability_name: Developer Portal Management
+  confidence: 0.72
+  evidence: GET /api/projects/{projectId}/docs  getDocumentations  List the documentations of a project;
+    POST .../pages  createDocPage  Create a page; schemas DocVisibility, Branding, DocTreeSpecSnapshot
+  reason: Authoring and structuring of published API documentation portals (pages, trees, versions, branding,
+    spec snapshots) — developer portal documentation management rather than general knowledge management,
+    given the docs are built around the API spec.

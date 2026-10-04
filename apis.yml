@@ -140,6 +140,9 @@ apis:
   - type: LLMsTxt
     url: https://routebase.dev/llms.txt
 common:
+- type: CapabilityMap
+  url: capabilities/routebase-capability-edges.yml
+  name: Routebase Business Capability Map
 - type: MCPServer
   url: https://mcp.routebase.dev
 - type: ToolCrosswalk
