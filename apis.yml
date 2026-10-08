@@ -140,6 +140,8 @@ apis:
   - type: LLMsTxt
     url: https://routebase.dev/llms.txt
 common:
+- type: Plans
+  url: plans/routebase-plans-pricing.yml
 - type: CapabilityMap
   url: capabilities/routebase-capability-edges.yml
   name: Routebase Business Capability Map
