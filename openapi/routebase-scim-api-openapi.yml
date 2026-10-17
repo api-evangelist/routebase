@@ -640,50 +640,37 @@ paths:
       - ScimBearerAuth: []
       x-routebase-folder-path: SCIM
 components:
+  parameters:
+    ScimCount:
+      name: ScimCount
+      in: query
+      description: Maximum number of results per page. Defaults to 100.
+      schema:
+        type: integer
+        format: int32
+    ScimStartIndex:
+      name: ScimStartIndex
+      in: query
+      description: 1-based index of the first result. Defaults to 1.
+      schema:
+        type: integer
+        format: int32
+    ScimId:
+      name: ScimId
+      in: path
+      description: SCIM id of the resource.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    OrgSlug:
+      name: OrgSlug
+      in: path
+      description: Slug of the organization, as shown in Settings.
+      required: true
+      schema:
+        type: string
   schemas:
-    ScimUserResource:
-      required:
-      - schemas
-      - id
-      - userName
-      - emails
-      - active
-      - meta
-      type: object
-      properties:
-        schemas:
-          type: array
-          items:
-            type: string
-          description: Always contains `urn:ietf:params:scim:schemas:core:2.0:User`.
-        id:
-          type: string
-          description: SCIM id of the user.
-        externalId:
-          type:
-          - 'null'
-          - string
-          description: The identifier the identity provider uses.
-        userName:
-          type: string
-          description: The login name, which is the email address.
-        name:
-          oneOf:
-          - $ref: '#/components/schemas/ScimName'
-          - type: 'null'
-          description: Structured name parts. Identity providers usually send given and family name.
-        emails:
-          type: array
-          items:
-            $ref: '#/components/schemas/ScimEmail'
-          description: Email addresses of the user. Exactly one carries primary.
-        active:
-          type: boolean
-          description: Setting this to false deactivates the user without deleting the record.
-        meta:
-          description: Resource metadata written by Routebase, not by the identity provider.
-          $ref: '#/components/schemas/ScimMeta'
-      description: A SCIM 2.0 user, as identity providers create and update it.
     ScimMeta:
       required:
       - resourceType
@@ -712,6 +699,111 @@ components:
           - string
           description: Entity tag of the resource, when the provider asked for one.
       description: SCIM resource metadata, written by Routebase rather than by the identity provider.
+    ScimPatchRequest:
+      required:
+      - schemas
+      - Operations
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          description: Always contains `urn:ietf:params:scim:api:messages:2.0:PatchOp`.
+        Operations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimPatchOperation'
+          description: The operations to apply, in order. Capitalised because SCIM defines it that way.
+      description: A SCIM PatchOp envelope, the usual way an identity provider changes one attribute.
+    ScimUserListResponse:
+      required:
+      - schemas
+      - totalResults
+      - startIndex
+      - itemsPerPage
+      - Resources
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          description: Always contains `urn:ietf:params:scim:api:messages:2.0:ListResponse`.
+        totalResults:
+          type: integer
+          description: Total number of matching users, ignoring paging.
+          format: int32
+        startIndex:
+          type: integer
+          description: 1-based index of the first entry in this page.
+          format: int32
+        itemsPerPage:
+          type: integer
+          description: How many entries this page holds.
+          format: int32
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimUserResource'
+          description: The users on this page. Capitalised because SCIM defines it that way.
+      description: A SCIM ListResponse envelope holding users.
+    ScimGroupListResponse:
+      required:
+      - schemas
+      - totalResults
+      - startIndex
+      - itemsPerPage
+      - Resources
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          description: Always contains `urn:ietf:params:scim:api:messages:2.0:ListResponse`.
+        totalResults:
+          type: integer
+          description: Total number of matching groups, ignoring paging.
+          format: int32
+        startIndex:
+          type: integer
+          description: 1-based index of the first entry in this page.
+          format: int32
+        itemsPerPage:
+          type: integer
+          description: How many entries this page holds.
+          format: int32
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimGroupResource'
+          description: The groups on this page. Capitalised because SCIM defines it that way.
+      description: A SCIM ListResponse envelope holding groups.
+    ScimError:
+      required:
+      - schemas
+      - detail
+      - status
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          description: Always contains `urn:ietf:params:scim:api:messages:2.0:Error`.
+        detail:
+          type: string
+          description: What went wrong, written for a person reading a provisioning log.
+        status:
+          type: string
+          description: The HTTP status code, as a string.
+        scimType:
+          type:
+          - 'null'
+          - string
+          description: The SCIM error type, for example `invalidFilter`.
+      description: The SCIM error envelope. It replaces the problem+json shape on every SCIM endpoint.
     Problem:
       required:
       - status
@@ -779,148 +871,6 @@ components:
           description: Resource metadata written by Routebase, not by the identity provider.
           $ref: '#/components/schemas/ScimMeta'
       description: A SCIM 2.0 group with its members. Groups map onto Routebase teams.
-    ScimGroupListResponse:
-      required:
-      - schemas
-      - totalResults
-      - startIndex
-      - itemsPerPage
-      - Resources
-      type: object
-      properties:
-        schemas:
-          type: array
-          items:
-            type: string
-          description: Always contains `urn:ietf:params:scim:api:messages:2.0:ListResponse`.
-        totalResults:
-          type: integer
-          description: Total number of matching groups, ignoring paging.
-          format: int32
-        startIndex:
-          type: integer
-          description: 1-based index of the first entry in this page.
-          format: int32
-        itemsPerPage:
-          type: integer
-          description: How many entries this page holds.
-          format: int32
-        Resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/ScimGroupResource'
-          description: The groups on this page. Capitalised because SCIM defines it that way.
-      description: A SCIM ListResponse envelope holding groups.
-    ScimError:
-      required:
-      - schemas
-      - detail
-      - status
-      type: object
-      properties:
-        schemas:
-          type: array
-          items:
-            type: string
-          description: Always contains `urn:ietf:params:scim:api:messages:2.0:Error`.
-        detail:
-          type: string
-          description: What went wrong, written for a person reading a provisioning log.
-        status:
-          type: string
-          description: The HTTP status code, as a string.
-        scimType:
-          type:
-          - 'null'
-          - string
-          description: The SCIM error type, for example `invalidFilter`.
-      description: The SCIM error envelope. It replaces the problem+json shape on every SCIM endpoint.
-    ScimPatchRequest:
-      required:
-      - schemas
-      - Operations
-      type: object
-      properties:
-        schemas:
-          type: array
-          items:
-            type: string
-          description: Always contains `urn:ietf:params:scim:api:messages:2.0:PatchOp`.
-        Operations:
-          type: array
-          items:
-            $ref: '#/components/schemas/ScimPatchOperation'
-          description: The operations to apply, in order. Capitalised because SCIM defines it that way.
-      description: A SCIM PatchOp envelope, the usual way an identity provider changes one attribute.
-    ScimEmail:
-      required:
-      - value
-      - primary
-      type: object
-      properties:
-        value:
-          type: string
-          description: The email address.
-        primary:
-          type: boolean
-          description: Whether this is the address Routebase uses to identify the user.
-        type:
-          type:
-          - 'null'
-          - string
-          description: Label the identity provider attached, such as work or home.
-      description: One email address of a SCIM user.
-    ScimName:
-      type: object
-      properties:
-        givenName:
-          type:
-          - 'null'
-          - string
-          description: First name.
-        familyName:
-          type:
-          - 'null'
-          - string
-          description: Last name.
-        formatted:
-          type:
-          - 'null'
-          - string
-          description: The full name as the identity provider renders it.
-      description: The structured name parts of a SCIM user.
-    ScimUserListResponse:
-      required:
-      - schemas
-      - totalResults
-      - startIndex
-      - itemsPerPage
-      - Resources
-      type: object
-      properties:
-        schemas:
-          type: array
-          items:
-            type: string
-          description: Always contains `urn:ietf:params:scim:api:messages:2.0:ListResponse`.
-        totalResults:
-          type: integer
-          description: Total number of matching users, ignoring paging.
-          format: int32
-        startIndex:
-          type: integer
-          description: 1-based index of the first entry in this page.
-          format: int32
-        itemsPerPage:
-          type: integer
-          description: How many entries this page holds.
-          format: int32
-        Resources:
-          type: array
-          items:
-            $ref: '#/components/schemas/ScimUserResource'
-          description: The users on this page. Capitalised because SCIM defines it that way.
-      description: A SCIM ListResponse envelope holding users.
     ScimPatchOperation:
       required:
       - op
@@ -941,6 +891,68 @@ components:
         value:
           description: The new value, whose shape depends on the path.
       description: One operation inside a PatchOp.
+    ScimUserResource:
+      required:
+      - schemas
+      - id
+      - userName
+      - emails
+      - active
+      - meta
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          description: Always contains `urn:ietf:params:scim:schemas:core:2.0:User`.
+        id:
+          type: string
+          description: SCIM id of the user.
+        externalId:
+          type:
+          - 'null'
+          - string
+          description: The identifier the identity provider uses.
+        userName:
+          type: string
+          description: The login name, which is the email address.
+        name:
+          oneOf:
+          - $ref: '#/components/schemas/ScimName'
+          - type: 'null'
+          description: Structured name parts. Identity providers usually send given and family name.
+        emails:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimEmail'
+          description: Email addresses of the user. Exactly one carries primary.
+        active:
+          type: boolean
+          description: Setting this to false deactivates the user without deleting the record.
+        meta:
+          description: Resource metadata written by Routebase, not by the identity provider.
+          $ref: '#/components/schemas/ScimMeta'
+      description: A SCIM 2.0 user, as identity providers create and update it.
+    ScimName:
+      type: object
+      properties:
+        givenName:
+          type:
+          - 'null'
+          - string
+          description: First name.
+        familyName:
+          type:
+          - 'null'
+          - string
+          description: Last name.
+        formatted:
+          type:
+          - 'null'
+          - string
+          description: The full name as the identity provider renders it.
+      description: The structured name parts of a SCIM user.
     ScimGroupMemberRef:
       required:
       - value
@@ -966,36 +978,24 @@ components:
           description: Kind of member. Routebase only supports User.
           default: User
       description: A reference from a group to one of its members.
-  parameters:
-    ScimStartIndex:
-      name: ScimStartIndex
-      in: query
-      description: 1-based index of the first result. Defaults to 1.
-      schema:
-        type: integer
-        format: int32
-    ScimId:
-      name: ScimId
-      in: path
-      description: SCIM id of the resource.
-      required: true
-      schema:
-        type: string
-        format: uuid
-    ScimCount:
-      name: ScimCount
-      in: query
-      description: Maximum number of results per page. Defaults to 100.
-      schema:
-        type: integer
-        format: int32
-    OrgSlug:
-      name: OrgSlug
-      in: path
-      description: Slug of the organization, as shown in Settings.
-      required: true
-      schema:
-        type: string
+    ScimEmail:
+      required:
+      - value
+      - primary
+      type: object
+      properties:
+        value:
+          type: string
+          description: The email address.
+        primary:
+          type: boolean
+          description: Whether this is the address Routebase uses to identify the user.
+        type:
+          type:
+          - 'null'
+          - string
+          description: Label the identity provider attached, such as work or home.
+      description: One email address of a SCIM user.
   responses:
     ScimError:
       description: A SCIM error envelope.
