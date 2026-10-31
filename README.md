@@ -1,4 +1,4 @@
-# routebase
+# Routebase
 
 <!-- API-EVANGELIST-PROVENANCE:BEGIN -->
 > ### About this repository
@@ -64,4 +64,147 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Startup discovery and intelligence platform built on a proprietary database of 30M+ companies and 200M+ people, offering real-time funding data, headcount/traction metrics, team composition, and investor relationships via REST, GraphQL, and a hosted MCP server.
+API lifecycle platform covering Design (visual OpenAPI editor), Mock (spec-driven mock servers), Test (suites, assertions, OWASP security scanning), Document (published docs portals), and Agents (MCP server), built around a single living OpenAPI spec.
+
+**Areas:** API lifecycle management · API Design · OpenAPI · API Documentation · API Testing · API Mocking · API Monitoring · API Security · MCP · AI Agents · Developer Tools · CI/CD
+
+## Routebase on APIs.io
+
+Everything profiled for Routebase is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/routebase/](https://apis.io/providers/routebase/)** — or go straight to one of the APIs or properties below.
+
+### APIs (5)
+
+- [Routebase API Specs API](https://apis.io/apis/routebase/routebase-api-specs-api/) — Read specifications and their versions, export them as OpenAPI, and record which version a deployment put into an environment.
+- [Routebase CI & Test Runs API](https://apis.io/apis/routebase/routebase-ci-test-runs-api/) — Run test suites from a pipeline and collect the result. These endpoints back the `routebase` CLI and the Routebase GitHub Action, and they are the ones a CI…
+- [Routebase Docs as Code API](https://apis.io/apis/routebase/routebase-docs-as-code-api/) — Keep documentation pages in your own repository and push them into Routebase from a pipeline. These endpoints back `routebase docs push` and `routebase docs…
+- [Routebase SCIM API](https://apis.io/apis/routebase/routebase-scim-api/) — SCIM 2.0 user and group provisioning, as consumed by Okta, Microsoft Entra ID and other identity providers. Available on plans that include SSO.
+- [Routebase Security API](https://apis.io/apis/routebase/routebase-security-api/) — Start an OWASP scan, poll it to completion, and read the findings. The SARIF export feeds GitHub code scanning and comparable tools.
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### AsyncAPI (2)
+
+Event-driven and webhook contracts.
+
+- [Routebase Webhooks](https://apis.io/asyncapis/routebase/routebase-webhooks-asyncapi/)
+- [Routebase Webhooks Catalog](https://apis.io/asyncapis/routebase/routebase-webhooks-catalog/)
+
+#### Event channels (1)
+
+Individual events and webhooks the provider emits.
+
+- [/](https://apis.io/channels/routebase/webhookdeliveries/)
+
+#### MCP servers (1)
+
+Model Context Protocol servers that expose the API to agents.
+
+- [https://mcp.routebase.dev](https://apis.io/servers/routebase/https-mcp-routebase-dev/)
+
+#### Agentic access (1)
+
+Which operations an agent can call, which act, and which need a human in the loop.
+
+- [Routebase Agentic Access](https://apis.io/agentic-access/routebase/routebase-agentic-access/)
+
+#### Overlays (1)
+
+OpenAPI overlays, including conversational phrasing for each operation.
+
+- [Routebase Public Api Overlay](https://apis.io/overlays/routebase/routebase-public-api-overlay/)
+
+#### Security (3)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Routebase Authentication](https://apis.io/security/routebase/routebase-authentication/)
+- [Routebase Domain Security](https://apis.io/security/routebase/routebase-domain-security/)
+- [Routebase Vulnerability Disclosure](https://apis.io/security/routebase/routebase-vulnerability-disclosure/)
+
+#### OAuth scopes (1)
+
+The permissions the API asks for.
+
+- [Routebase Scopes](https://apis.io/scopes/routebase/routebase-scopes/)
+
+#### Plans and pricing (1)
+
+Published plans, tiers and prices.
+
+- [Routebase Plans Pricing](https://apis.io/plans/routebase/routebase-plans-pricing/)
+
+#### Rate limits (1)
+
+Published request limits.
+
+- [Routebase Rate Limits](https://apis.io/rate-limits/routebase/routebase-rate-limits/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://routebase.dev)
+- [Getting started](https://docs.routebase.dev/getting-started/)
+- [Pricing](https://routebase.dev/pricing/)
+- [Sign up](https://app.routebase.dev/)
+- [Support](https://routebase.dev/support/)
+- [Blog](https://routebase.dev/blog/)
+- [Terms of service](https://routebase.dev/terms/)
+- [Privacy policy](https://routebase.dev/privacy/)
+
+## API Evangelist rating
+
+**Kin Score 64.3** — strong · rubric 0.25.0 · scored 2026-10-23
+
+| Facet | Score |
+|---|---|
+| Discoverability | 75.0 |
+| Contract quality | 58.2 |
+| Contract governance | 4.5 |
+| Operational transparency | 55.3 |
+| Developer ergonomics | 80.4 |
+| Access clarity | 63.2 |
+
+**Agent readiness 52.8** — agent-ready (gated down from agent-native)
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | derived (partial credit) |
+| Reversibility Documented | — |
+| MCP Server | documented (partial credit) |
+| Auth Clarity | served (partial credit) |
+| Idempotency | — |
+| Error Semantics | verified |
+| OpenAPI Examples | — |
+| Rate Limit Signal | verified |
+| Event Surface Described | yes |
+| Agent Skills | derived (partial credit) |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | served (partial credit) |
+| Protected Resource Metadata | verified |
+| Dynamic Client Registration | yes |
+| Agentic Commerce | — |
+| Pagination Ratio | partial |
+| Operation Distinctiveness | mostly (partial credit) |
+
+**Regulatory alignment 40.2** — Horizontal (data, software, accessibility, platform)
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/routebase/](https://apis.io/providers/routebase/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for Routebase: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/routebase/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
